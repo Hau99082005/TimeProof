@@ -2,7 +2,18 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
-import { UserCircle, ShieldCheck, Bell, Palette, Moon, Sun, Save, Copy, Check, Upload } from "lucide-react";
+import {
+  UserCircle,
+  ShieldCheck,
+  Bell,
+  Palette,
+  Moon,
+  Sun,
+  Save,
+  Copy,
+  Check,
+  Upload,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
@@ -91,24 +102,28 @@ export default function SettingsComponents() {
           ctx.drawImage(img, 0, 0, width, height);
         }
 
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            const formData = new FormData();
-            formData.append("avatar", blob, "avatar.jpg");
-            const res = await fetch("/api/user/update", {
-              method: "POST",
-              body: formData,
-            });
-            if (res.ok) {
-              await refetchUser();
-              setAvatarKey(Date.now());
-              toast.success("Cập nhật ảnh đại diện thành công!");
-            } else {
-              toast.error("Cập nhật ảnh đại diện thất bại!");
+        canvas.toBlob(
+          async (blob) => {
+            if (blob) {
+              const formData = new FormData();
+              formData.append("avatar", blob, "avatar.jpg");
+              const res = await fetch("/api/user/update", {
+                method: "POST",
+                body: formData,
+              });
+              if (res.ok) {
+                await refetchUser();
+                setAvatarKey(Date.now());
+                toast.success("Cập nhật ảnh đại diện thành công!");
+              } else {
+                toast.error("Cập nhật ảnh đại diện thất bại!");
+              }
+              setIsUploading(false);
             }
-            setIsUploading(false);
-          }
-        }, "image/jpeg", 0.8);
+          },
+          "image/jpeg",
+          0.8,
+        );
       };
 
       img.onerror = () => {
@@ -122,7 +137,7 @@ export default function SettingsComponents() {
       setIsUploading(false);
     }
   };
-  
+
   const handleSaveProfile = async () => {
     if (!dbUser?.id) return;
     setIsSaving(true);
@@ -185,10 +200,19 @@ export default function SettingsComponents() {
                 <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
                   <div className="flex items-center gap-6 flex-wrap">
                     <div className="relative group">
-                      <Avatar key={avatarKey} className="h-32 w-32 border-4 border-blue-100 dark:border-slate-80">
+                      <Avatar
+                        key={avatarKey}
+                        className="h-32 w-32 border-4 border-blue-100 dark:border-slate-80"
+                      >
                         {(() => {
-                          const baseSrc = (user?.photoURL || dbUser?.avatar || "").trim();
-                          const cacheParam = dbUser?.updated_at ? `?t=${new Date(dbUser.updated_at).getTime()}` : "";
+                          const baseSrc = (
+                            user?.photoURL ||
+                            dbUser?.avatar ||
+                            ""
+                          ).trim();
+                          const cacheParam = dbUser?.updated_at
+                            ? `?t=${new Date(dbUser.updated_at).getTime()}`
+                            : "";
                           const src = baseSrc ? baseSrc + cacheParam : null;
                           return src ? (
                             <AvatarImage src={src} alt={firstName} />
@@ -209,7 +233,9 @@ export default function SettingsComponents() {
                         <Button
                           size="icon"
                           className="h-10 w-10"
-                          onClick={() => document.getElementById('avatar-upload')?.click()}
+                          onClick={() =>
+                            document.getElementById("avatar-upload")?.click()
+                          }
                           disabled={isUploading}
                         >
                           {isUploading ? (
@@ -221,9 +247,29 @@ export default function SettingsComponents() {
                       </div>
                     </div>
                     <div>
-                      <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                      <h1
+                        className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3"
+                        style={{
+                          fontFamily: "'Roboto', sans-serif",
+                          fontSize: "36px",
+                          fontWeight: "700",
+                          fontStyle: "Bold",
+                          lineHeight: "44px",
+                          letterSpacing: "0.01em",
+                        }}
+                      >
                         {firstName}
-                        <span className="text-sm font-normal px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
+                        <span
+                          className="text-sm font-normal px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg"
+                          style={{
+                            fontFamily: "'Roboto', sans-serif",
+                            fontSize: "16px",
+                            fontWeight: "500",
+                            fontStyle: "Bold",
+                            lineHeight: 1.4,
+                            letterSpacing: "0.01em",
+                          }}
+                        >
                           Free
                         </span>
                       </h1>
@@ -232,7 +278,15 @@ export default function SettingsComponents() {
                   <Button
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-600 hover:bg-blue-700 text-white w-1/5 h-12"
+                    style={{
+                      fontFamily: "'Roboto', sans-serif",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      fontStyle: "Bold",
+                      lineHeight: 1.4,
+                      letterSpacing: "0.01em",
+                    }}
                   >
                     {isSaving ? (
                       <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
@@ -248,14 +302,45 @@ export default function SettingsComponents() {
                 <div className="mb-8 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-purple-700 dark:text-purple-300">
+                      <h3
+                        className="text-lg font-semibold text-purple-700 dark:text-purple-300"
+                        style={{
+                          fontFamily: "'Roboto', sans-serif",
+                          fontSize: "22px",
+                          fontWeight: "700",
+                          fontStyle: "Bold",
+                          lineHeight: 1.4,
+                          letterSpacing: "0.01em",
+                        }}
+                      >
                         Nâng cấp lên Plus
                       </h3>
-                      <p className="text-purple-600 dark:text-purple-400 text-sm mt-1">
-                        Không quảng cáo, tập trung hơn, và nhiều tính năng hay khác.
+                      <p
+                        className="text-purple-600 dark:text-purple-400 text-sm mt-1"
+                        style={{
+                          fontFamily: "'Roboto', sans-serif",
+                          fontSize: "16px",
+                          fontWeight: "400",
+                          fontStyle: "italic",
+                          lineHeight: 1.4,
+                          letterSpacing: "0.01em",
+                        }}
+                      >
+                        Không quảng cáo, tập trung hơn, và nhiều tính năng hay
+                        khác.
                       </p>
                     </div>
-                    <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                    <Button
+                      className="bg-purple-600 hover:bg-purple-700 text-white w-1/5 h-12"
+                      style={{
+                        fontFamily: "'Roboto', sans-serif",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        fontStyle: "Bold",
+                        lineHeight: 1.4,
+                        letterSpacing: "0.01em",
+                      }}
+                    >
                       Nâng cấp lên Plus
                     </Button>
                   </div>
@@ -263,31 +348,92 @@ export default function SettingsComponents() {
 
                 <div className="space-y-8">
                   <section>
-                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
+                    <h2
+                      className="text-xl font-semibold text-slate-900 dark:text-white mb-4"
+                      style={{
+                        fontFamily: "'Roboto', sans-serif",
+                        fontSize: "24px",
+                        fontWeight: "700",
+                        fontStyle: "Bold",
+                        lineHeight: 1.4,
+                        letterSpacing: "0.01em",
+                      }}
+                    >
                       Thông tin cơ bản
                     </h2>
 
                     <div className="space-y-6">
                       <div>
-                        <Label className="text-slate-700 dark:text-slate-300">Biệt danh TimeProof</Label>
+                        <Label
+                          className="text-slate-700 dark:text-slate-300"
+                          style={{
+                            fontFamily: "'Roboto', sans-serif",
+                            fontSize: "14px",
+                            fontWeight: "400",
+                            fontStyle: "Bold",
+                            lineHeight: 1.4,
+                            letterSpacing: "0.01em",
+                          }}
+                        >
+                          Biệt danh TimeProof
+                        </Label>
                         <Input
                           value={nickname}
                           onChange={(e) => setNickname(e.target.value)}
                           placeholder="Nhập biệt danh TimeProof của bạn"
                           className="mt-2"
+                          style={{
+                            fontFamily: "'Roboto', sans-serif",
+                            fontSize: "12px",
+                            fontWeight: "400",
+                            fontStyle: "Bold",
+                            lineHeight: 1.4,
+                            letterSpacing: "0.01em",
+                          }}
                         />
-                        <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
-                          Biệt danh của bạn sẽ xuất hiện trên League và hiển thị cho mọi người.
+                        <p
+                          className="text-slate-600 dark:text-slate-400 text-sm mt-2"
+                          style={{
+                            fontFamily: "'Roboto', sans-serif",
+                            fontSize: "14px",
+                            fontWeight: "400",
+                            fontStyle: "Bold",
+                            lineHeight: 1.4,
+                            letterSpacing: "0.01em",
+                          }}
+                        >
+                          Biệt danh của bạn sẽ xuất hiện trên League và hiển thị
+                          cho mọi người.
                         </p>
                       </div>
 
                       <div>
-                        <Label className="text-slate-700 dark:text-slate-300">URL hồ sơ</Label>
+                        <Label
+                          className="text-slate-700 dark:text-slate-300"
+                          style={{
+                            fontFamily: "'Roboto', sans-serif",
+                            fontSize: "14px",
+                            fontWeight: "400",
+                            fontStyle: "Bold",
+                            lineHeight: 1.4,
+                            letterSpacing: "0.01em",
+                          }}
+                        >
+                          URL hồ sơ
+                        </Label>
                         <div className="flex gap-2 mt-2">
                           <Input value={profileUrl} disabled />
                           <Button
                             onClick={handleCopyUrl}
                             className={`${isCopied ? "bg-green-600" : "bg-green-600 hover:bg-green-700"} text-white`}
+                            style={{
+                              fontFamily: "'Roboto', sans-serif",
+                              fontSize: "14px",
+                              fontWeight: "400",
+                              fontStyle: "Bold",
+                              lineHeight: 1.4,
+                              letterSpacing: "0.01em",
+                            }}
                           >
                             {isCopied ? (
                               <>
@@ -308,30 +454,53 @@ export default function SettingsComponents() {
 
                       <div className="space-y-6">
                         <div className="flex items-center gap-3">
-                          <Switch id="show-profile" checked={showProfile} onCheckedChange={setShowProfile} />
-                          <Label htmlFor="show-profile" className="text-slate-700 dark:text-slate-300 font-medium">
+                          <Switch
+                            id="show-profile"
+                            checked={showProfile}
+                            onCheckedChange={setShowProfile}
+                          />
+                          <Label
+                            htmlFor="show-profile"
+                            className="text-slate-700 dark:text-slate-300 font-medium"
+                          >
                             Hiển thị hồ sơ
                           </Label>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Switch id="show-certificates" checked={showCertificates} onCheckedChange={setShowCertificates} />
+                          <Switch
+                            id="show-certificates"
+                            checked={showCertificates}
+                            onCheckedChange={setShowCertificates}
+                          />
                           <div>
-                            <Label htmlFor="show-certificates" className="text-slate-700 dark:text-slate-300 font-medium">
+                            <Label
+                              htmlFor="show-certificates"
+                              className="text-slate-700 dark:text-slate-300 font-medium"
+                            >
                               Hiển thị Chứng chỉ trong Hồ sơ
                             </Label>
                             <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
-                              Hiển thị các chứng chỉ bạn đã kiếm được trên hồ sơ TimeProof của mình.
+                              Hiển thị các chứng chỉ bạn đã kiếm được trên hồ sơ
+                              TimeProof của mình.
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Switch id="show-spaces" checked={showSpaces} onCheckedChange={setShowSpaces} />
+                          <Switch
+                            id="show-spaces"
+                            checked={showSpaces}
+                            onCheckedChange={setShowSpaces}
+                          />
                           <div>
-                            <Label htmlFor="show-spaces" className="text-slate-700 dark:text-slate-300 font-medium">
+                            <Label
+                              htmlFor="show-spaces"
+                              className="text-slate-700 dark:text-slate-300 font-medium"
+                            >
                               Hiển thị Spaces trong Hồ sơ
                             </Label>
                             <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
-                              Hiển thị các spaces bạn đã tạo trên hồ sơ TimeProof của mình.
+                              Hiển thị các spaces bạn đã tạo trên hồ sơ
+                              TimeProof của mình.
                             </p>
                           </div>
                         </div>
@@ -342,7 +511,17 @@ export default function SettingsComponents() {
                   <Separator />
 
                   <section>
-                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+                    <h2
+                      className="text-xl font-semibold text-slate-900 dark:text-white mb-6"
+                      style={{
+                        fontFamily: "'Roboto', sans-serif",
+                        fontSize: "24px",
+                        fontWeight: "700",
+                        fontStyle: "Bold",
+                        lineHeight: 1.4,
+                        letterSpacing: "0.01em",
+                      }}
+                    >
                       Thông tin tài khoản
                     </h2>
 
@@ -357,7 +536,8 @@ export default function SettingsComponents() {
                           className="mt-2"
                         />
                         <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
-                          Tên bạn nhập ở đây sẽ xuất hiện trên chứng chỉ của bạn.
+                          Tên bạn nhập ở đây sẽ xuất hiện trên chứng chỉ của
+                          bạn.
                         </p>
                       </div>
                       <div>
@@ -396,16 +576,32 @@ export default function SettingsComponents() {
                         onChange={(e) => setEmailNews(e.target.checked)}
                         className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <Label htmlFor="email-news" className="text-slate-700 dark:text-slate-300">
+                      <Label
+                        htmlFor="email-news"
+                        className="text-slate-700 dark:text-slate-300"
+                      >
                         Gửi email cho tôi về tin tức và cập nhật
                       </Label>
                     </div>
 
                     <div className="mb-8">
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
+                      <h3
+                        className="text-lg font-semibold text-slate-900 dark:text-white mb-3"
+                        style={{
+                          fontFamily: "'Roboto', sans-serif",
+                          fontSize: "24px",
+                          fontWeight: "700",
+                          fontStyle: "Bold",
+                          lineHeight: 1.4,
+                          letterSpacing: "0.01em",
+                        }}
+                      >
                         Mật khẩu
                       </h3>
-                      <Button variant="outline" className="border-slate-300 dark:border-slate-700">
+                      <Button
+                        variant="outline"
+                        className="border-slate-300 dark:border-slate-700"
+                      >
                         Đặt lại mật khẩu
                       </Button>
                     </div>
@@ -471,7 +667,9 @@ export default function SettingsComponents() {
                   </div>
                   <Switch
                     checked={theme === "dark"}
-                    onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                    onCheckedChange={(checked) =>
+                      setTheme(checked ? "dark" : "light")
+                    }
                   />
                 </div>
               </div>
