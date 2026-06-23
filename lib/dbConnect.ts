@@ -8,4 +8,8 @@ const pool = mysql2.createPool({
   port: Number(process.env.DB_PORT),
 });
 
+export async function dbConnect() {
+  return pool;
+}
+
 export default pool;
