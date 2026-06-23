@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     if (existingUsers.length === 0) {
       const [result] = (await pool.execute(
-        "INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+        "INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, password_hash, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, NOW(), NOW())",
         [
           uid,
           name || email?.split("@")[0],

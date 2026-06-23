@@ -123,7 +123,7 @@ const Header = () => {
                 {dbUser.role === "admin" && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/admin" className="flex items-center gap-2 cursor-pointer">
+                      <Link href="/dashboard/admin" className="flex items-center gap-2 cursor-pointer">
                         <LayoutDashboard size={16} />
                         Quản trị admin
                       </Link>

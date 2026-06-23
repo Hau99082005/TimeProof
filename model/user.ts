@@ -9,6 +9,7 @@ export interface User {
   avatar: string;
   role: "admin" | "seller" | "customer";
   wallet_balance: number;
+  status: boolean;
   password_hash?: string;
   created_at: Date;
   updated_at: Date;
@@ -20,8 +21,8 @@ export const createUser = async (
   const connection = await dbConnection.getConnection();
   try {
     const [result] = await connection.execute(
-      `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, status) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         user.firebase_id || "",
         user.full_name,
@@ -29,6 +30,7 @@ export const createUser = async (
         user.avatar,
         user.role,
         user.wallet_balance,
+        user.status ?? true,
       ],
     );
     const insertResult = result as any;
@@ -175,8 +177,8 @@ export const createUserWithEmail = async (
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const [result] = await connection.execute(
-      `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, password_hash) 
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, password_hash, status) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         user.firebase_id || "",
         user.full_name,
@@ -185,6 +187,7 @@ export const createUserWithEmail = async (
         user.role,
         user.wallet_balance,
         hashedPassword,
+        user.status ?? true,
       ],
     );
     const insertResult = result as any;
@@ -238,6 +241,18 @@ export const deleteUserPassword = async (id: number): Promise<void> => {
       `UPDATE users SET password_hash = NULL WHERE id = ?`,
       [id],
     );
+  } finally {
+    connection.release();
+  }
+};
+
+export const toggleUserStatus = async (id: number): Promise<User | null> => {
+  const connection = await dbConnection.getConnection();
+  try {
+    await connection.execute(`UPDATE users SET status = NOT status WHERE id = ?`, [id]);
+    const [rows] = await connection.execute(`SELECT * FROM users WHERE id = ?`, [id]);
+    const users = rows as User[];
+    return users[0] || null;
   } finally {
     connection.release();
   }

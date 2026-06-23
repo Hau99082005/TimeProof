@@ -1,7 +1,7 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,8 +52,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const secret = process.env.JWT_SECRET || "your-secret-key-change-this";
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      secret,
+      { expiresIn: "7d" }
+    );
+
     const userWithoutPassword = { ...user, password_hash: undefined };
-    return NextResponse.json({ success: true, user: userWithoutPassword });
+    const response = NextResponse.json({ success: true, user: userWithoutPassword });
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7
+    });
+    return response;
   } catch (err) {
     console.error("Login error:", err);
     return NextResponse.json(
