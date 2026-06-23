@@ -3,8 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { ClerkProvider } from "@clerk/nextjs";
-import { viVN } from "@clerk/localizations";
 import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
 import "./globals.css";
@@ -31,11 +29,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider
-      localization={viVN}
-      signInUrl="/login"
-      signUpUrl="/register"
-    >
       <html
         lang="vi"
         className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
@@ -59,6 +52,5 @@ export default function RootLayout({
           </ThemeProvider>
         </body>
       </html>
-    </ClerkProvider>
   );
 }

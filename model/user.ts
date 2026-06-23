@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 export interface User {
   id: number;
-  clerk_id?: string;
+  firebase_id?: string;
   full_name: string;
   email: string;
   avatar: string;
@@ -20,10 +20,10 @@ export const createUser = async (
   const connection = await dbConnection.getConnection();
   try {
     const [result] = await connection.execute(
-      `INSERT INTO users (clerk_id, full_name, email, avatar, role, wallet_balance) 
+      `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance) 
              VALUES (?, ?, ?, ?, ?, ?)`,
       [
-        user.clerk_id || null,
+        user.firebase_id || null,
         user.full_name,
         user.email,
         user.avatar,
@@ -57,14 +57,14 @@ export const getUserById = async (id: number): Promise<User | null> => {
   }
 };
 
-export const getUserByClerkId = async (
-  clerkId: string,
+export const getUserByFirebaseId = async (
+  firebaseId: string,
 ): Promise<User | null> => {
   const connection = await dbConnection.getConnection();
   try {
     const [rows] = await connection.execute(
-      `SELECT * FROM users WHERE clerk_id = ?`,
-      [clerkId],
+      `SELECT * FROM users WHERE firebase_id = ?`,
+      [firebaseId],
     );
     const users = rows as User[];
     return users[0] || null;
@@ -175,10 +175,10 @@ export const createUserWithEmail = async (
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const [result] = await connection.execute(
-      `INSERT INTO users (clerk_id, full_name, email, avatar, role, wallet_balance, password_hash) 
+      `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, password_hash) 
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
-        user.clerk_id || null,
+        user.firebase_id || null,
         user.full_name,
         user.email,
         user.avatar,

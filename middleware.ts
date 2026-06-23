@@ -1,53 +1,45 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/login",
-  "/register",
-  "/sso-callback",
-  "/api/login",
-  "/api/register",
-  "/api/auth/sync-user",
-]);
-
-export default clerkMiddleware(async (auth, req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
-  // Skip middleware for static assets and _next
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/static") ||
-    pathname === "/favicon.ico" ||
-    /\.(?:svg|png|jpg|jpeg|gif|webp)$/.test(pathname)
-  ) {
+  const publicRoutes = [
+    "/",
+    "/login",
+    "/register",
+    "/api/auth/session",
+    "/_next",
+    "/static",
+    "/favicon.ico",
+  ];
+  const isPublicRoute = publicRoutes.some((route) => 
+    pathname === route || pathname.startsWith(route) || /\.(?:svg|png|jpg|jpeg|gif|webp)$/.test(pathname)
+  );
+
+  if (isPublicRoute) {
     return NextResponse.next();
   }
 
-  // Check for our JWT token on non-public routes
-  if (!isPublicRoute(req)) {
-    const token = req.cookies.get("token")?.value;
+  const token = req.cookies.get("token")?.value;
 
-    if (!token) {
-      const loginUrl = new URL("/login", req.url);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    try {
-      const secret = process.env.JWT_SECRET || "your-secret-key-change-this";
-      jwt.verify(token, secret);
-    } catch (error) {
-      const loginUrl = new URL("/login", req.url);
-      const response = NextResponse.redirect(loginUrl);
-      response.cookies.delete("token");
-      return response;
-    }
+  if (!token) {
+    const loginUrl = new URL("/login", req.url);
+    return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
-});
+  try {
+    const secret = process.env.JWT_SECRET || "your-secret-key-change-this";
+    jwt.verify(token, secret);
+    return NextResponse.next();
+  } catch (error) {
+    const loginUrl = new URL("/login", req.url);
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.delete("token");
+    return response;
+  }
+}
 
 export const config = {
   matcher: [

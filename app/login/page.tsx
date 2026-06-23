@@ -1,44 +1,49 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
-import { useSignIn, useUser } from "@clerk/nextjs";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { auth, app } from "@/firebase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const { signIn } = useSignIn();
-  const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
 
-  React.useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      const syncUser = async () => {
+  
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
         try {
-          const res = await fetch("/api/auth/sync-user", { method: "POST" });
+          const idToken = await user.getIdToken();
+          const res = await fetch("/api/auth/session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ idToken }),
+          });
           if (res.ok) {
             router.push("/");
           }
         } catch (err) {
           console.error(err);
+          toast.error("Đăng nhập thất bại");
         }
-      };
-      syncUser();
-    }
-  }, [isSignedIn, isLoaded, router]);
+      }
+    });
+    return unsubscribe;
+  }, [router]);
 
   const signInWithGoogle = async () => {
     setIsLoading(true);
     try {
-      await signIn.sso({
-        strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectCallbackUrl: "/sso-callback",
-      });
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
     } catch (err) {
       console.error(err);
       toast.error("Đăng nhập thất bại");
@@ -51,21 +56,11 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const result = await signIn.password({
-        emailAddress: form.email,
-        password: form.password,
-      });
-      if (result.error) {
-        toast.error("Email hoặc mật khẩu không đúng");
-        return;
-      }
-      if (signIn.status === "complete") {
-        await signIn.finalize();
-        toast.success("Đăng nhập thành công!");
-      }
+      await signInWithEmailAndPassword(auth, form.email, form.password);
+      toast.success("Đăng nhập thành công!");
     } catch (err) {
       console.error(err);
-      toast.error("Đăng nhập thất bại");
+      toast.error("Email hoặc mật khẩu không đúng");
     } finally {
       setIsLoading(false);
     }

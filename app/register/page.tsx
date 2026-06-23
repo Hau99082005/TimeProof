@@ -1,45 +1,49 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight, CheckCircle2 } from "lucide-react";
-import { useSignUp, useUser } from "@clerk/nextjs";
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from "firebase/auth";
+import { auth } from "@/firebase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
-  const { signUp } = useSignUp();
-  const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [success, setSuccess] = useState(false);
 
-  React.useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      const syncUser = async () => {
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
         try {
-          const res = await fetch("/api/auth/sync-user", { method: "POST" });
+          const idToken = await user.getIdToken();
+          const res = await fetch("/api/auth/session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ idToken }),
+          });
           if (res.ok) {
             router.push("/");
           }
         } catch (err) {
           console.error(err);
+          toast.error("Đăng nhập thất bại");
         }
-      };
-      syncUser();
-    }
-  }, [isSignedIn, isLoaded, router]);
+      }
+    });
+    return unsubscribe;
+  }, [router]);
 
   const signUpWithGoogle = async () => {
     setIsLoading(true);
     try {
-      await signUp.sso({
-        strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectCallbackUrl: "/sso-callback",
-      });
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
     } catch (err) {
       console.error(err);
       toast.error("Đăng ký thất bại");
@@ -52,20 +56,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const result = await signUp.password({
-        firstName: form.name,
-        emailAddress: form.email,
-        password: form.password,
-      });
-      if (result.error) {
-        toast.error("Đăng ký thất bại");
-        return;
-      }
-      if (signUp.status === "complete") {
-        await signUp.finalize();
-        toast.success("Đăng ký thành công!");
-        setSuccess(true);
-      }
+      const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      await updateProfile(userCredential.user, { displayName: form.name });
+      toast.success("Đăng ký thành công!");
+      setSuccess(true);
     } catch (err) {
       console.error(err);
       toast.error("Đăng ký thất bại");

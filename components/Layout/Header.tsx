@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -13,6 +13,8 @@ import {
   Newspaper,
   Sun,
   Moon,
+  LogOut,
+  User as UserIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -22,12 +24,31 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { useUser, SignOutButton, UserButton } from "@clerk/nextjs";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { auth } from "@/firebase/client";
+import { User, signOut } from "firebase/auth";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { isSignedIn } = useUser();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(setUser);
+    return unsubscribe;
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      const res = await fetch("/api/auth/session", { method: "DELETE" });
+      if (res.ok) {
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const navItems = [
     { name: "Source Code", icon: Code2, href: "/source-code" },
@@ -83,8 +104,21 @@ const Header = () => {
             <span className="sr-only">Toggle theme</span>
           </Button>
           
-          {isSignedIn ? (
-            <UserButton />
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={(user.photoURL || "").trim()} alt={user.displayName || "User"} />
+                <AvatarFallback>
+                  {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                {user.displayName || user.email}
+              </span>
+              <Button variant="ghost" size="icon" onClick={handleSignOut}>
+                <LogOut size={20} />
+              </Button>
+            </div>
           ) : (
             <Link href="/login">
               <Button className="hidden md:flex font-semibold h-10 px-5">
@@ -160,9 +194,27 @@ const Header = () => {
                   <SheetClose asChild>
                     <Button className="w-full">Liên hệ</Button>
                   </SheetClose>
-                  {isSignedIn ? (
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <UserButton />
+                  {user ? (
+                    <div className="flex flex-col gap-2 px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={(user.photoURL || "").trim()} alt={user.displayName || "User"} />
+                          <AvatarFallback>
+                            {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                          {user.displayName || user.email}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="w-full text-slate-700 hover:text-primary hover:bg-blue-50 justify-start gap-3"
+                        onClick={handleSignOut}
+                      >
+                        <LogOut size={20} />
+                        Đăng xuất
+                      </Button>
                     </div>
                   ) : (
                     <SheetClose asChild>
