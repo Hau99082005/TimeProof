@@ -1,49 +1,39 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Lock, Eye, EyeOff, User, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from "lucide-react";
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        try {
-          const idToken = await user.getIdToken();
-          const res = await fetch("/api/auth/session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ idToken }),
-          });
-          if (res.ok) {
-            router.push("/");
-          }
-        } catch (err) {
-          console.error(err);
-          toast.error("Đăng nhập thất bại");
-        }
-      }
-    });
-    return unsubscribe;
-  }, [router]);
+  const { refetchUser } = useAuth();
 
   const signUpWithGoogle = async () => {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      const idToken = await userCredential.user.getIdToken();
+      const res = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+      if (res.ok) {
+        toast.success("Đăng ký thành công!");
+        await refetchUser();
+        router.push("/");
+      }
     } catch (err) {
       console.error(err);
       toast.error("Đăng ký thất bại");
@@ -56,13 +46,35 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Đăng ký thất bại");
+      }
+      
       const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
       await updateProfile(userCredential.user, { displayName: form.name });
-      toast.success("Đăng ký thành công!");
-      setSuccess(true);
+      
+      const idToken = await userCredential.user.getIdToken();
+      const sessionRes = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+      
+      if (sessionRes.ok) {
+        toast.success("Đăng ký thành công!");
+        await refetchUser();
+        router.push("/");
+      }
     } catch (err) {
       console.error(err);
-      toast.error("Đăng ký thất bại");
+      toast.error(err instanceof Error ? err.message : "Đăng ký thất bại");
     } finally {
       setIsLoading(false);
     }
@@ -71,24 +83,6 @@ export default function RegisterPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-blue-50 dark:bg-slate-900">
-        <main className="w-full max-w-md text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-            <CheckCircle2 size={36} className="text-green-600"></CheckCircle2>
-          </div>
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Đăng ký thành công!</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Tài khoản của bạn đã được tạo thành công.</p>
-          <Link href="/" className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl text-sm font-semibold hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
-            Về trang chủ
-            <ArrowRight size={15}></ArrowRight>
-          </Link>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-blue-50 dark:bg-slate-900">

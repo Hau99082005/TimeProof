@@ -23,7 +23,7 @@ export const createUser = async (
       `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance) 
              VALUES (?, ?, ?, ?, ?, ?)`,
       [
-        user.firebase_id || null,
+        user.firebase_id || "",
         user.full_name,
         user.email,
         user.avatar,
@@ -178,7 +178,7 @@ export const createUserWithEmail = async (
       `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, password_hash) 
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
-        user.firebase_id || null,
+        user.firebase_id || "",
         user.full_name,
         user.email,
         user.avatar,

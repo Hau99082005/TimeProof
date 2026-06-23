@@ -1,49 +1,39 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth, app } from "@/firebase/client";
+import { auth } from "@/firebase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
-
-  
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        try {
-          const idToken = await user.getIdToken();
-          const res = await fetch("/api/auth/session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ idToken }),
-          });
-          if (res.ok) {
-            router.push("/");
-          }
-        } catch (err) {
-          console.error(err);
-          toast.error("Đăng nhập thất bại");
-        }
-      }
-    });
-    return unsubscribe;
-  }, [router]);
+  const { refetchUser } = useAuth();
 
   const signInWithGoogle = async () => {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      const idToken = await userCredential.user.getIdToken();
+      const res = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+      if (res.ok) {
+        toast.success("Đăng nhập thành công!");
+        await refetchUser();
+        router.push("/");
+      }
     } catch (err) {
       console.error(err);
       toast.error("Đăng nhập thất bại");
@@ -56,11 +46,34 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, form.email, form.password);
-      toast.success("Đăng nhập thành công!");
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password: form.password }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Đăng nhập thất bại");
+      }
+      
+      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
+      
+      const idToken = await userCredential.user.getIdToken();
+      const sessionRes = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+      
+      if (sessionRes.ok) {
+        toast.success("Đăng nhập thành công!");
+        await refetchUser();
+        router.push("/");
+      }
     } catch (err) {
       console.error(err);
-      toast.error("Email hoặc mật khẩu không đúng");
+      toast.error(err instanceof Error ? err.message : "Đăng nhập thất bại");
     } finally {
       setIsLoading(false);
     }
