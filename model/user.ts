@@ -257,3 +257,22 @@ export const toggleUserStatus = async (id: number): Promise<User | null> => {
     connection.release();
   }
 };
+
+export const updateUser = async (
+  id: number,
+  updates: Partial<Omit<User, "id" | "created_at" | "updated_at">>,
+): Promise<User | null> => {
+  const connection = await dbConnection.getConnection();
+  try {
+    const fields = Object.keys(updates).map(key => `${key} = ?`).join(", ");
+    const values = Object.values(updates);
+    values.push(id);
+
+    await connection.execute(`UPDATE users SET ${fields}, updated_at = NOW() WHERE id = ?`, values);
+    const [rows] = await connection.execute(`SELECT * FROM users WHERE id = ?`, [id]);
+    const users = rows as User[];
+    return users[0] || null;
+  } finally {
+    connection.release();
+  }
+};

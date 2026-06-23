@@ -120,10 +120,17 @@ const Header = () => {
                     className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 h-9 sm:h-10"
                   >
                     <Avatar className="h-7 sm:h-8 w-7 sm:w-8">
-                      <AvatarImage
-                        src={(user.photoURL || dbUser.avatar || "").trim()}
-                        alt={dbUser.full_name}
-                      />
+                      {(() => {
+                        const baseSrc = (user.photoURL || dbUser.avatar || "").trim();
+                        const cacheParam = dbUser.updated_at ? `?t=${new Date(dbUser.updated_at).getTime()}` : "";
+                        const src = baseSrc ? baseSrc + cacheParam : null;
+                        return src ? (
+                          <AvatarImage
+                            src={src}
+                            alt={dbUser.full_name}
+                          />
+                        ) : null;
+                      })()}
                       <AvatarFallback className="text-xs sm:text-sm">
                         {(dbUser.full_name || user.email || "U")
                           .charAt(0)
@@ -281,10 +288,17 @@ const Header = () => {
                     <div className="flex flex-col gap-2 px-4 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage
-                            src={(user.photoURL || dbUser.avatar || "").trim()}
-                            alt={dbUser.full_name}
-                          />
+                          {(() => {
+                            const baseSrc = (user.photoURL || dbUser.avatar || "").trim();
+                            const cacheParam = dbUser.updated_at ? `?t=${new Date(dbUser.updated_at).getTime()}` : "";
+                            const src = baseSrc ? baseSrc + cacheParam : null;
+                            return src ? (
+                              <AvatarImage
+                                src={src}
+                                alt={dbUser.full_name}
+                              />
+                            ) : null;
+                          })()}
                           <AvatarFallback>
                             {(dbUser.full_name || user.email || "U")
                               .charAt(0)

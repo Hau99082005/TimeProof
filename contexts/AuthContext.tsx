@@ -13,6 +13,7 @@ interface DbUser {
   avatar?: string;
   role: "admin" | "seller" | "customer";
   wallet_balance: number;
+  status: boolean;
   created_at: Date;
   updated_at: Date;
 }
