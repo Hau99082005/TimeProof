@@ -154,6 +154,34 @@ LOCK TABLES `badges` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `banners`
+--
+
+DROP TABLE IF EXISTS `banners`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `banners` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `image` text NOT NULL,
+  `image_url` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `banners`
+--
+
+LOCK TABLES `banners` WRITE;
+/*!40000 ALTER TABLE `banners` DISABLE KEYS */;
+INSERT INTO `banners` VALUES (1,'Modern ReactJS Development Banner','banners/banner-1782233327150','https://res.cloudinary.com/dqy0xlhld/image/upload/v1782233329/banners/banner-1782233327150.png','2026-06-23 16:48:58','2026-06-23 16:48:58'),(2,'MySQL Công Nghệ - Tối Giản & Hiện Đại','banners/banner-1782233431373','https://res.cloudinary.com/dqy0xlhld/image/upload/v1782233433/banners/banner-1782233431373.png','2026-06-23 16:50:42','2026-06-23 16:50:42'),(3,'Modern MySQL Digital Banner with Dolphin Icon','banners/banner-1782233708286','https://res.cloudinary.com/dqy0xlhld/image/upload/v1782233702/banners/banner-1782233708286.png','2026-06-23 16:55:11','2026-06-23 16:55:11');
+/*!40000 ALTER TABLE `banners` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `blog_categories`
 --
 
@@ -1118,7 +1146,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (3,'OMSrCTVNOagrUWt5qaGxg6gpmB33','Hậu Lê văn','hau99082005@gmail.com','','https://lh3.googleusercontent.com/a/ACg8ocLnFIDit42SkcNMCejes0uLe5qSkCzUKWmf3g8rKKx4_x7bkKsF=s96-c','admin',0.00,'2026-06-23 08:42:25','2026-06-23 13:36:10',1),(4,'HvxhSDO1ftZOOLsbr5hDo1BCQDj2','Hậu Lê Văn','levanhau200508@gmail.com','','https://lh3.googleusercontent.com/a/ACg8ocJ8sbNuDT0xIrbhvrl8UA_vetHhgyrr3GyTEvo0ef45sxeECg=s96-c','customer',0.00,'2026-06-23 09:16:37','2026-06-23 11:28:38',1),(5,'RNnFBRpLmqgRzTubudyEScw4Ix83','minh Thien','thienminh200202@gmail.com','','https://lh3.googleusercontent.com/a/ACg8ocLpf4W-JvQtpWiAcCoa0V9twChHnGi42dviAVtbTOV9Jw6t5w=s96-c','customer',0.00,'2026-06-23 09:23:44','2026-06-23 11:48:11',1),(6,'','LÊ VĂN HẬU','hau22082005@gmail.com','$2b$10$FYOZO.vhr0gdU1Sjh7UlLebSK89QGXV.CGxCCCVSih5F1Ag9CZpna','','customer',0.00,'2026-06-23 09:24:18','2026-06-23 09:24:18',1),(8,'mBqxSpDYWafGwsZVm5JdYD3Gnnp2','LÊ VĂN HẬU','hau12082005@gmail.com','$2b$10$35ZsJR4wuU4q8Eb5sFWR1e6yIy51cNJhect.W94opxk2zycogRz3C','','customer',0.00,'2026-06-23 09:31:52','2026-06-23 09:47:30',1),(9,'NhQ0zxhNuWWYhsIqaiVXrle6Lgm1','LÊ VĂN HẬU','hau26082005@gmail.com','$2b$10$05G1Km5NrLfwYLX7Orahj.K1KVDEdVWcxJRBNKPBq3xxPw3HUOkm2','','customer',0.00,'2026-06-23 09:34:52','2026-06-23 09:34:54',1),(10,'HFEpyNvVROd6L1QTO9hNgqnVz7i1','Nguyễn Duy Mạnh','manh@gmail.com','$2b$10$KAYUoweUnEudf1Q04mMtGe.VVVAO.ez2b0goWaT0JlCpa3QKSRviS','','customer',0.00,'2026-06-23 09:46:10','2026-06-23 09:46:12',1);
+INSERT INTO `users` VALUES (3,'OMSrCTVNOagrUWt5qaGxg6gpmB33','Hậu Lê văn','hau99082005@gmail.com','','/images/avatars/avatar-3-1782224673350-758253911.jpeg','admin',0.00,'2026-06-23 08:42:25','2026-06-23 15:22:40',1),(4,'HvxhSDO1ftZOOLsbr5hDo1BCQDj2','Hậu Lê Văn','levanhau200508@gmail.com','','https://lh3.googleusercontent.com/a/ACg8ocJ8sbNuDT0xIrbhvrl8UA_vetHhgyrr3GyTEvo0ef45sxeECg=s96-c','customer',0.00,'2026-06-23 09:16:37','2026-06-23 11:28:38',1),(5,'RNnFBRpLmqgRzTubudyEScw4Ix83','minh Thien','thienminh200202@gmail.com','','https://lh3.googleusercontent.com/a/ACg8ocLpf4W-JvQtpWiAcCoa0V9twChHnGi42dviAVtbTOV9Jw6t5w=s96-c','customer',0.00,'2026-06-23 09:23:44','2026-06-23 11:48:11',1),(6,'','LÊ VĂN HẬU','hau22082005@gmail.com','$2b$10$FYOZO.vhr0gdU1Sjh7UlLebSK89QGXV.CGxCCCVSih5F1Ag9CZpna','','customer',0.00,'2026-06-23 09:24:18','2026-06-23 09:24:18',1),(8,'mBqxSpDYWafGwsZVm5JdYD3Gnnp2','LÊ VĂN HẬU','hau12082005@gmail.com','$2b$10$35ZsJR4wuU4q8Eb5sFWR1e6yIy51cNJhect.W94opxk2zycogRz3C','','customer',0.00,'2026-06-23 09:31:52','2026-06-23 09:47:30',1),(9,'NhQ0zxhNuWWYhsIqaiVXrle6Lgm1','LÊ VĂN HẬU','hau26082005@gmail.com','$2b$10$05G1Km5NrLfwYLX7Orahj.K1KVDEdVWcxJRBNKPBq3xxPw3HUOkm2','','customer',0.00,'2026-06-23 09:34:52','2026-06-23 09:34:54',1),(10,'HFEpyNvVROd6L1QTO9hNgqnVz7i1','Nguyễn Duy Mạnh','manh@gmail.com','$2b$10$KAYUoweUnEudf1Q04mMtGe.VVVAO.ez2b0goWaT0JlCpa3QKSRviS','','customer',0.00,'2026-06-23 09:46:10','2026-06-23 09:46:12',1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1184,4 +1212,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-23 20:52:22
+-- Dump completed on 2026-06-23 23:59:12

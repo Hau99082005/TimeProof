@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import StoreProvider from "@/components/StoreProvider";
 import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
 import "./globals.css";
@@ -42,16 +43,18 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <AuthProvider>
-              <TooltipProvider>
-                <Header />
-                <main className="flex-1">
-                  {children}
-                </main>
-                <Footer />
-                <Toaster />
-              </TooltipProvider>
-            </AuthProvider>
+            <StoreProvider>
+              <AuthProvider>
+                <TooltipProvider>
+                  <Header />
+                  <main className="flex-1">
+                    {children}
+                  </main>
+                  <Footer />
+                  <Toaster />
+                </TooltipProvider>
+              </AuthProvider>
+            </StoreProvider>
           </ThemeProvider>
         </body>
       </html>

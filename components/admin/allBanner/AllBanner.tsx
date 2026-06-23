@@ -1,12 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   LayoutDashboard,
@@ -18,6 +16,7 @@ import {
   Plus,
   Trash2,
   Edit,
+  Upload,
 } from "lucide-react";
 import {
   Sidebar,
@@ -35,28 +34,62 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-
-interface Banner {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  isActive: boolean;
-  link: string;
-  createdAt: Date;
-}
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/lib/store";
+import {
+  fetchBanners,
+  createBanner,
+  deleteBanner,
+} from "@/lib/reduxslice/bannerSlice";
 
 export default function AllBanner() {
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { banners, isLoading, isUploading, error } = useSelector(
+    (state: RootState) => state.banner,
+  );
+  const [title, setTitle] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { signOut } = useAuth();
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      toast.success("Đã chọn ảnh");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
+
+      await dispatch(createBanner(formData)).unwrap();
+      toast.success("Tạo banner thành công!");
+      setTitle("");
+      setSelectedFile(null);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Không thể tạo banner";
+      toast.error(errorMessage);
     }
   };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Bạn có chắc muốn xóa banner này?")) {
+      return;
+    }
+
+    try {
+      await dispatch(deleteBanner(id)).unwrap();
+      toast.success("Xóa banner thành công!");
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Không thể xóa banner";
+      toast.error(errorMessage);
+    }
+  };
+
+  useEffect(() => {
+    dispatch(fetchBanners());
+  }, [dispatch]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -116,7 +149,7 @@ export default function AllBanner() {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive>
                     <Link
-                      href="/dashboard/admin/banner"
+                      href="/dashboard/admin/allBanner"
                       className="flex items-center gap-2"
                     >
                       <ImageIcon />
@@ -149,7 +182,7 @@ export default function AllBanner() {
           </h1>
         </header>
         <div className="flex-1 p-3 md:p-8 lg:p-12 w-full overflow-y-auto">
-          <div className="flex flex-col gap-6 w-full max-w-full">
+          <div className="flex flex-col gap-6 w-full">
             <div className="flex flex-wrap items-center justify-between gap-4 w-full">
               <div className="space-y-1">
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">
@@ -159,14 +192,29 @@ export default function AllBanner() {
                   Quản lý các banner hiển thị trên trang chủ
                 </p>
               </div>
-              <Button className="flex items-center gap-2">
-                <Plus className="size-4" />
-                <span className="text-sm md:text-base">Thêm banner mới</span>
+              <Button
+                onClick={() => dispatch(fetchBanners())}
+                disabled={isLoading}
+                className="flex items-center gap-2"
+              >
+                {isLoading ? (
+                  <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Plus className="size-4" />
+                )}
+                <span className="text-sm md:text-base">
+                  {isLoading ? "Đang tải..." : "Tải lại"}
+                </span>
               </Button>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full">
-              {banners.length === 0 ? (
-                <Card className="md:col-span-2 lg:col-span-3 xl:col-span-4 w-full">
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
+              {isLoading ? (
+                <div className="col-span-full flex justify-center py-12">
+                  <div className="size-10 border-4 border-current border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : banners.length === 0 ? (
+                <Card className="md:col-span-2 lg:col-span-3 w-full">
                   <CardContent className="flex flex-col items-center justify-center py-12 md:py-16 lg:py-20">
                     <ImageIcon className="size-12 md:size-16 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground text-sm md:text-base">
@@ -182,9 +230,9 @@ export default function AllBanner() {
                   >
                     <div className="relative">
                       <div className="aspect-video bg-muted flex items-center justify-center">
-                        {banner.image ? (
+                        {banner.image_url ? (
                           <img
-                            src={banner.image}
+                            src={banner.image_url}
                             alt={banner.title}
                             className="w-full h-full object-cover"
                           />
@@ -204,6 +252,7 @@ export default function AllBanner() {
                           size="icon"
                           variant="destructive"
                           className="h-8 w-8"
+                          onClick={() => handleDelete(banner.id)}
                         >
                           <Trash2 className="size-4" />
                         </Button>
@@ -214,18 +263,13 @@ export default function AllBanner() {
                         <CardTitle className="text-sm md:text-base">
                           {banner.title}
                         </CardTitle>
-                        <Switch checked={banner.isActive} />
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
-                        {banner.description}
-                      </p>
-                    </CardContent>
                   </Card>
                 ))
               )}
             </div>
+
             <Card className="transition-all duration-200 hover:shadow-md w-full">
               <CardHeader>
                 <CardTitle className="text-sm md:text-lg">
@@ -233,85 +277,107 @@ export default function AllBanner() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 md:space-y-6">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="banner-title"
-                    className="text-sm md:text-base"
-                  >
-                    Tiêu đề
-                  </Label>
-                  <Input
-                    id="banner-title"
-                    placeholder="Nhập tiêu đề banner"
-                    className="text-sm md:text-base"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="banner-description"
-                    className="text-sm md:text-base"
-                  >
-                    Mô tả
-                  </Label>
-                  <Textarea
-                    id="banner-description"
-                    placeholder="Nhập mô tả banner"
-                    className="text-sm md:text-base"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="banner-link" className="text-sm md:text-base">
-                    Liên kết
-                  </Label>
-                  <Input
-                    id="banner-link"
-                    placeholder="Nhập liên kết banner"
-                    className="text-sm md:text-base"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="banner-image"
-                    className="text-sm md:text-base"
-                  >
-                    Hình ảnh
-                  </Label>
-                  <div className="border-2 border-dashed rounded-lg p-6 md:p-8 lg:p-10 flex flex-col items-center justify-center gap-2">
-                    <ImageIcon className="size-8 md:size-10 text-muted-foreground" />
-                    <input
-                      type="file"
-                      id="banner-image"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      variant="secondary"
-                      onClick={() =>
-                        document.getElementById("banner-image")?.click()
-                      }
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-4 md:space-y-6"
+                >
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="banner-title"
+                      className="text-sm md:text-base"
                     >
-                      Chọn ảnh
+                      Tiêu đề
+                    </Label>
+                    <Input
+                      id="banner-title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Nhập tiêu đề banner"
+                      className="text-sm md:text-base"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="banner-image"
+                      className="text-sm md:text-base"
+                    >
+                      Hình ảnh
+                    </Label>
+                    <div className="border-2 border-dashed rounded-lg p-6 md:p-8 lg:p-10 flex flex-col items-center justify-center gap-2">
+                      {selectedFile ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <img
+                            src={URL.createObjectURL(selectedFile)}
+                            alt="Preview"
+                            className="max-h-40 object-contain"
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            {selectedFile.name}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setSelectedFile(null)}
+                          >
+                            Xóa ảnh
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <ImageIcon className="size-8 md:size-10 text-muted-foreground" />
+                          <input
+                            type="file"
+                            id="banner-image"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setSelectedFile(file);
+                                const fileName = file.name.replace(
+                                  /\.[^/.]+$/,
+                                  "",
+                                );
+                                setTitle(fileName);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                          <Button
+                            variant="secondary"
+                            type="button"
+                            onClick={() =>
+                              document.getElementById("banner-image")?.click()
+                            }
+                            className="flex items-center gap-2"
+                          >
+                            <Upload className="size-4" />
+                            Chọn ảnh
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="submit"
+                      disabled={isUploading}
+                      className="text-sm md:text-base"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                          Đang tải...
+                        </>
+                      ) : (
+                        "Lưu banner"
+                      )}
                     </Button>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch id="banner-active" defaultChecked />
-                  <Label
-                    htmlFor="banner-active"
-                    className="text-sm md:text-base"
-                  >
-                    Kích hoạt banner
-                  </Label>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    disabled={isUploading}
-                    className="text-sm md:text-base"
-                  >
-                    {isUploading ? "Đang tải..." : "Lưu banner"}
-                  </Button>
-                </div>
+                </form>
               </CardContent>
             </Card>
           </div>
