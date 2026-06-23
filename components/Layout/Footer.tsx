@@ -36,7 +36,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-blue-50 dark:bg-slate-900 border-t border-blue-100 dark:border-slate-800">
+    <footer className="bg-blue-50 dark:bg-black border-t border-blue-100 dark:border-slate-900">
       <div className="w-full px-6 md:px-12 lg:px-24 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-1">
@@ -59,7 +59,7 @@ const Footer = () => {
                 <Link
                   key={idx}
                   href={social.href}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white hover:border-primary transition-all"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white hover:border-primary transition-all"
                 >
                   <social.icon size={18} />
                 </Link>
@@ -116,7 +116,7 @@ const Footer = () => {
               <input
                 type="email"
                 placeholder="Nhập email của bạn"
-                className="flex-1 px-4 py-2 rounded-lg bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="flex-1 px-4 py-2 rounded-lg bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               <button className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
                 Gửi
@@ -125,7 +125,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-blue-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-12 pt-8 border-t border-blue-100 dark:border-slate-900 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-600 dark:text-slate-400 text-sm">
             © {date.getFullYear()} TimeProof. All rights reserved.
           </p>

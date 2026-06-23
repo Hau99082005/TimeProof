@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { dbUser, loading } = useAuth();
@@ -57,5 +58,5 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  return <div className="min-h-screen">{children}</div>;
+  return <SidebarProvider>{children}</SidebarProvider>;
 }

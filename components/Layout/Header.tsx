@@ -17,6 +17,7 @@ import {
   User as UserIcon,
   Settings,
   LayoutDashboard,
+  Home,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -51,25 +52,25 @@ const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-blue-50 dark:bg-slate-900 border-b border-blue-100 dark:border-slate-800">
-      <div className="w-full px-6 md:px-12 lg:px-24 flex h-16 items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 w-full bg-blue-50 dark:bg-black border-b border-blue-100 dark:border-slate-900">
+      <div className="w-full px-3 sm:px-6 md:px-12 lg:px-24 flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-4 sm:gap-8 flex-1 min-w-0">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Image
               src="/icons/Logo/Logo.png"
               alt="TimeProof Logo"
-              width={160}
-              height={50}
-              className="h-12 w-auto"
+              width={120}
+              height={38}
+              className="h-8 sm:h-10 md:h-12 w-auto"
               priority
             />
           </Link>
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-6 overflow-x-auto">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium text-slate-700 dark:text-slate-200 transition-all hover:text-primary hover:font-semibold"
+                className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-200 transition-all hover:text-primary hover:font-semibold whitespace-nowrap"
               >
                 {item.name}
               </Link>
@@ -77,37 +78,48 @@ const Header = () => {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <Button
             variant="ghost"
             size="icon"
-            className="hidden md:flex text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-100 dark:hover:bg-slate-800 h-10 w-10"
+            className="hidden md:flex text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-100 dark:hover:bg-slate-900 h-9 sm:h-10 w-9 sm:w-10"
           >
             <Search size={20} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="hidden md:flex text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-100 dark:hover:bg-slate-800 h-10 w-10"
+            className="hidden md:flex text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-100 dark:hover:bg-slate-900 h-9 sm:h-10 w-9 sm:w-10"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <Sun className="h-4 sm:h-5 w-4 sm:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 sm:h-5 w-4 sm:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
 
           {loading ? (
-            <Button variant="ghost" className="hidden md:flex h-10 w-10 items-center justify-center">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <Button
+              variant="ghost"
+              className="hidden md:flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center"
+            >
+              <div className="h-4 sm:h-5 w-4 sm:w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </Button>
           ) : user && dbUser ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 px-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={(user.photoURL || dbUser.avatar || "").trim()} alt={dbUser.full_name} />
-                    <AvatarFallback>
-                      {(dbUser.full_name || user.email || "U").charAt(0).toUpperCase()}
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 h-9 sm:h-10"
+                >
+                  <Avatar className="h-7 sm:h-8 w-7 sm:w-8">
+                    <AvatarImage
+                      src={(user.photoURL || dbUser.avatar || "").trim()}
+                      alt={dbUser.full_name}
+                    />
+                    <AvatarFallback className="text-xs sm:text-sm">
+                      {(dbUser.full_name || user.email || "U")
+                        .charAt(0)
+                        .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -116,14 +128,19 @@ const Header = () => {
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
                     <span className="font-semibold">{dbUser.full_name}</span>
-                    <span className="text-xs text-muted-foreground">{dbUser.email}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {dbUser.email}
+                    </span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {dbUser.role === "admin" && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/dashboard/admin" className="flex items-center gap-2 cursor-pointer">
+                      <Link
+                        href="/dashboard/admin"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
                         <LayoutDashboard size={16} />
                         Quản trị admin
                       </Link>
@@ -132,13 +149,29 @@ const Header = () => {
                   </>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex items-center gap-2 cursor-pointer">
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <Settings size={16} />
                     Cài đặt tài khoản
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="text-red-600 dark:text-red-400 cursor-pointer">
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Home size={16} />
+                    Về trang chủ
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={signOut}
+                  className="text-red-600 dark:text-red-400 cursor-pointer"
+                >
                   <LogOut size={16} className="mr-2" />
                   Đăng xuất
                 </DropdownMenuItem>
@@ -146,7 +179,7 @@ const Header = () => {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button className="hidden md:flex font-semibold h-10 px-5">
+              <Button className="hidden md:flex font-semibold h-9 sm:h-10 px-3 sm:px-5 text-xs sm:text-sm">
                 Đăng nhập
               </Button>
             </Link>
@@ -157,18 +190,18 @@ const Header = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-800"
+                className="md:hidden text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-900"
               >
                 <Menu size={24} />
               </Button>
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-[85vw] sm:w-[400px] bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 p-0"
+              className="w-[85vw] sm:w-[400px] bg-white dark:bg-black border-slate-200 dark:border-slate-900 p-0"
               showCloseButton={false}
             >
               <div className="flex flex-col h-full">
-                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-900">
                   <SheetClose asChild>
                     <Link href="/" className="flex items-center gap-2">
                       <Image
@@ -185,7 +218,7 @@ const Header = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-800"
+                      className="text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-900"
                     >
                       <X size={24} />
                     </Button>
@@ -196,7 +229,7 @@ const Header = () => {
                     <SheetClose asChild key={item.name}>
                       <Link
                         href={item.href}
-                        className="flex items-center gap-3 px-4 py-3 text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                        className="flex items-center gap-3 px-4 py-3 text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-900 rounded-lg transition-all"
                       >
                         <item.icon size={22} />
                         {item.name}
@@ -204,10 +237,10 @@ const Header = () => {
                     </SheetClose>
                   ))}
                 </div>
-                <div className="flex flex-col gap-3 p-6 border-t border-slate-200 dark:border-slate-800">
+                <div className="flex flex-col gap-3 p-6 border-t border-slate-200 dark:border-slate-900">
                   <Button
                     variant="ghost"
-                    className="w-full text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-800 justify-start gap-3"
+                    className="w-full text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-900 justify-start gap-3"
                     onClick={() =>
                       setTheme(theme === "dark" ? "light" : "dark")
                     }
@@ -227,9 +260,14 @@ const Header = () => {
                     <div className="flex flex-col gap-2 px-4 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={(user.photoURL || dbUser.avatar || "").trim()} alt={dbUser.full_name} />
+                          <AvatarImage
+                            src={(user.photoURL || dbUser.avatar || "").trim()}
+                            alt={dbUser.full_name}
+                          />
                           <AvatarFallback>
-                            {(dbUser.full_name || user.email || "U").charAt(0).toUpperCase()}
+                            {(dbUser.full_name || user.email || "U")
+                              .charAt(0)
+                              .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
@@ -243,10 +281,10 @@ const Header = () => {
                       </div>
                       {dbUser.role === "admin" && (
                         <SheetClose asChild>
-                          <Link href="/admin">
+                          <Link href="/dashboard/admin">
                             <Button
                               variant="ghost"
-                              className="w-full text-slate-700 hover:text-primary hover:bg-blue-50 justify-start gap-3"
+                              className="w-full text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-900 justify-start gap-3"
                             >
                               <LayoutDashboard size={20} />
                               Quản trị admin
@@ -258,7 +296,7 @@ const Header = () => {
                         <Link href="/settings">
                           <Button
                             variant="ghost"
-                            className="w-full text-slate-700 hover:text-primary hover:bg-blue-50 justify-start gap-3"
+                            className="w-full text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-900 justify-start gap-3"
                           >
                             <Settings size={20} />
                             Cài đặt tài khoản
@@ -266,13 +304,13 @@ const Header = () => {
                         </Link>
                       </SheetClose>
                       <Button
-                variant="ghost"
-                className="w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 justify-start gap-3"
-                onClick={signOut}
-              >
-                <LogOut size={20} />
-                Đăng xuất
-              </Button>
+                        variant="ghost"
+                        className="w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 justify-start gap-3"
+                        onClick={signOut}
+                      >
+                        <LogOut size={20} />
+                        Đăng xuất
+                      </Button>
                     </div>
                   ) : (
                     <SheetClose asChild>
