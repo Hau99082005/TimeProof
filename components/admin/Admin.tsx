@@ -3,12 +3,29 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { User } from "@/model/user";
-import { Check, X, LayoutDashboard, Users, Settings, Home, LogOut, TrendingUp } from "lucide-react";
+import {
+  Check,
+  X,
+  LayoutDashboard,
+  Users,
+  Settings,
+  Home,
+  LogOut,
+  TrendingUp,
+  Image as ImageIcon,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,13 +41,27 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { DropdownMenuSeparator } from "../ui/dropdown-menu";
 
 const roleColors = {
   admin: "#3b82f6",
   seller: "#10b981",
-  customer: "#f59e0b"
+  customer: "#f59e0b",
 };
 
 export default function AdminDashboard() {
@@ -57,10 +88,16 @@ export default function AdminDashboard() {
 
   const toggleUserStatus = async (userId: number) => {
     try {
-      const res = await fetch(`/api/admin/active/${userId}`, { method: "POST" });
+      const res = await fetch(`/api/admin/active/${userId}`, {
+        method: "POST",
+      });
       if (res.ok) {
         const data = await res.json();
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: data.data.status } : u));
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === userId ? { ...u, status: data.data.status } : u,
+          ),
+        );
         toast.success("Cập nhật trạng thái thành công");
       } else {
         toast.error("Không thể cập nhật trạng thái");
@@ -76,14 +113,34 @@ export default function AdminDashboard() {
   }, []);
 
   const statusData = [
-    { name: "Hoạt động", value: users.filter(u => u.status).length, fill: "#10b981" },
-    { name: "Ngưng hoạt động", value: users.filter(u => !u.status).length, fill: "#ef4444" }
+    {
+      name: "Hoạt động",
+      value: users.filter((u) => u.status).length,
+      fill: "#10b981",
+    },
+    {
+      name: "Ngưng hoạt động",
+      value: users.filter((u) => !u.status).length,
+      fill: "#ef4444",
+    },
   ];
 
   const roleData = [
-    { name: "Admin", value: users.filter(u => u.role === "admin").length, fill: roleColors.admin },
-    { name: "Seller", value: users.filter(u => u.role === "seller").length, fill: roleColors.seller },
-    { name: "Customer", value: users.filter(u => u.role === "customer").length, fill: roleColors.customer }
+    {
+      name: "Admin",
+      value: users.filter((u) => u.role === "admin").length,
+      fill: roleColors.admin,
+    },
+    {
+      name: "Seller",
+      value: users.filter((u) => u.role === "seller").length,
+      fill: roleColors.seller,
+    },
+    {
+      name: "Customer",
+      value: users.filter((u) => u.role === "customer").length,
+      fill: roleColors.customer,
+    },
   ];
 
   return (
@@ -97,17 +154,32 @@ export default function AdminDashboard() {
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Menu</SidebarGroupLabel>
+            <SidebarGroupLabel
+              style={{
+                fontFamily: "Roboto, sans-serif",
+                fontSize: "14px",
+                fontWeight: "bold",
+                fontStyle: "bold",
+                lineHeight: 1.6,
+                letterSpacing: "0.01em",
+              }}
+            >
+              Menu
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive>
-                    <Link href="/dashboard/admin" className="flex items-center gap-2">
+                    <Link
+                      href="/dashboard/admin"
+                      className="flex items-center gap-2"
+                    >
                       <LayoutDashboard />
                       <span>Tổng quan</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <DropdownMenuSeparator />
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link href="/" className="flex items-center gap-2">
@@ -116,11 +188,24 @@ export default function AdminDashboard() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <DropdownMenuSeparator />
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link href="/settings" className="flex items-center gap-2">
                       <Settings />
                       <span>Cài đặt</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <DropdownMenuSeparator />
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href="/dashboard/admin/allBanner"
+                      className="flex items-center gap-2"
+                    >
+                      <ImageIcon />
+                      <span>Banner</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -144,7 +229,9 @@ export default function AdminDashboard() {
       <SidebarInset className="flex flex-col w-full overflow-hidden">
         <header className="flex h-14 sm:h-16 items-center gap-2 sm:gap-4 px-3 sm:px-4 md:px-8 border-b bg-background sticky top-0 z-10 shrink-0">
           <SidebarTrigger />
-          <h1 className="text-base sm:text-lg md:text-2xl font-bold truncate flex-1">Dashboard Admin</h1>
+          <h1 className="text-base sm:text-lg md:text-2xl font-bold truncate flex-1">
+            Dashboard Admin
+          </h1>
           <div className="shrink-0">
             <Button onClick={fetchUsers} disabled={loading} size="sm">
               {loading && <Spinner className="size-4 mr-1" />}
@@ -158,26 +245,38 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
               <Card className="transition-all duration-200 hover:shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium text-gray-500">Tổng người dùng</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium text-gray-500">
+                    Tổng người dùng
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl md:text-4xl lg:text-5xl font-bold">{users.length}</div>
+                  <div className="text-3xl md:text-4xl lg:text-5xl font-bold">
+                    {users.length}
+                  </div>
                 </CardContent>
               </Card>
               <Card className="transition-all duration-200 hover:shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium text-gray-500">Người dùng hoạt động</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium text-gray-500">
+                    Người dùng hoạt động
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-green-600">{users.filter(u => u.status).length}</div>
+                  <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-green-600">
+                    {users.filter((u) => u.status).length}
+                  </div>
                 </CardContent>
               </Card>
               <Card className="transition-all duration-200 hover:shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium text-gray-500">Người dùng bị khóa</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium text-gray-500">
+                    Người dùng bị khóa
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-red-600">{users.filter(u => !u.status).length}</div>
+                  <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-red-600">
+                    {users.filter((u) => !u.status).length}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -192,7 +291,10 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-2 md:p-6">
-                <ChartContainer config={{}} className="h-48 md:h-72 lg:h-80 w-full">
+                <ChartContainer
+                  config={{}}
+                  className="h-48 md:h-72 lg:h-80 w-full"
+                >
                   <PieChart>
                     <Pie
                       data={statusData}
@@ -220,11 +322,14 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-2 md:p-6">
-                <ChartContainer config={{}} className="h-48 md:h-72 lg:h-80 w-full">
+                <ChartContainer
+                  config={{}}
+                  className="h-48 md:h-72 lg:h-80 w-full"
+                >
                   <BarChart data={roleData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" tick={{fontSize: 10}} />
-                    <YAxis tick={{fontSize: 10}} />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                       {roleData.map((entry, index) => (
@@ -254,36 +359,74 @@ export default function AdminDashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-xs md:text-sm whitespace-nowrap">ID</TableHead>
-                        <TableHead className="text-xs md:text-sm whitespace-nowrap">Họ tên</TableHead>
-                        <TableHead className="text-xs md:text-sm whitespace-nowrap">Email</TableHead>
-                        <TableHead className="text-xs md:text-sm whitespace-nowrap">Vai trò</TableHead>
-                        <TableHead className="text-xs md:text-sm whitespace-nowrap">Trạng thái</TableHead>
-                        <TableHead className="text-xs md:text-sm whitespace-nowrap">Hành động</TableHead>
+                        <TableHead className="text-xs md:text-sm whitespace-nowrap">
+                          ID
+                        </TableHead>
+                        <TableHead className="text-xs md:text-sm whitespace-nowrap">
+                          Họ tên
+                        </TableHead>
+                        <TableHead className="text-xs md:text-sm whitespace-nowrap">
+                          Email
+                        </TableHead>
+                        <TableHead className="text-xs md:text-sm whitespace-nowrap">
+                          Vai trò
+                        </TableHead>
+                        <TableHead className="text-xs md:text-sm whitespace-nowrap">
+                          Trạng thái
+                        </TableHead>
+                        <TableHead className="text-xs md:text-sm whitespace-nowrap">
+                          Hành động
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map(user => (
-                        <TableRow key={user.id} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                          <TableCell className="text-xs md:text-sm whitespace-nowrap">{user.id}</TableCell>
-                          <TableCell className="text-xs md:text-sm whitespace-nowrap">{user.full_name}</TableCell>
-                          <TableCell className="text-xs md:text-sm max-w-[100px] sm:max-w-[150px] truncate">{user.email}</TableCell>
+                      {users.map((user) => (
+                        <TableRow
+                          key={user.id}
+                          className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                        >
+                          <TableCell className="text-xs md:text-sm whitespace-nowrap">
+                            {user.id}
+                          </TableCell>
+                          <TableCell className="text-xs md:text-sm whitespace-nowrap">
+                            {user.full_name}
+                          </TableCell>
+                          <TableCell className="text-xs md:text-sm max-w-[100px] sm:max-w-[150px] truncate">
+                            {user.email}
+                          </TableCell>
                           <TableCell>
                             <Badge
-                              style={{ backgroundColor: roleColors[user.role as keyof typeof roleColors] }}
+                              style={{
+                                backgroundColor:
+                                  roleColors[
+                                    user.role as keyof typeof roleColors
+                                  ],
+                              }}
                               className="text-white text-xs md:text-sm whitespace-nowrap"
                             >
                               {user.role}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={user.status ? "default" : "destructive"} className="text-xs md:text-sm whitespace-nowrap">
+                            <Badge
+                              variant={user.status ? "default" : "destructive"}
+                              className="text-xs md:text-sm whitespace-nowrap"
+                            >
                               {user.status ? "Hoạt động" : "Ngưng Hoạt Động"}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="outline" size="icon" onClick={() => toggleUserStatus(user.id)} className="transition-all duration-200 hover:scale-105 shrink-0">
-                              {user.status ? <X className="size-4" /> : <Check className="size-4" />}
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => toggleUserStatus(user.id)}
+                              className="transition-all duration-200 hover:scale-105 shrink-0"
+                            >
+                              {user.status ? (
+                                <X className="size-4" />
+                              ) : (
+                                <Check className="size-4" />
+                              )}
                             </Button>
                           </TableCell>
                         </TableRow>
