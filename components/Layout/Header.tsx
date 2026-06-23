@@ -48,7 +48,9 @@ const Header = () => {
     { name: "Đồ Án CNTT", icon: GraduationCap, href: "/projects" },
     { name: "Website Mẫu", icon: Globe, href: "/templates" },
     { name: "Giải Pháp", icon: Building2, href: "/solutions" },
-    { name: "Tin Tức", icon: Newspaper, href: "/news" },
+    { name: "Tìm hiểu thêm", icon: Building2, href: "/learn-more" },
+    { name: "Công nghệ", icon: Building2, href: "/technology" },
+    { name: "Bài viết", icon: Newspaper, href: "/news" },
   ];
 
   return (
@@ -105,25 +107,31 @@ const Header = () => {
               <div className="h-4 sm:h-5 w-4 sm:w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </Button>
           ) : user && dbUser ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 h-9 sm:h-10"
-                >
-                  <Avatar className="h-7 sm:h-8 w-7 sm:w-8">
-                    <AvatarImage
-                      src={(user.photoURL || dbUser.avatar || "").trim()}
-                      alt={dbUser.full_name}
-                    />
-                    <AvatarFallback className="text-xs sm:text-sm">
-                      {(dbUser.full_name || user.email || "U")
-                        .charAt(0)
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Link href="/pricing" className="shrink-0">
+                <Button className="hidden md:flex font-semibold h-9 sm:h-10 px-3 sm:px-5 text-xs sm:text-sm bg-primary hover:bg-primary/90">
+                  Bảng giá
                 </Button>
-              </DropdownMenuTrigger>
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 h-9 sm:h-10"
+                  >
+                    <Avatar className="h-7 sm:h-8 w-7 sm:w-8">
+                      <AvatarImage
+                        src={(user.photoURL || dbUser.avatar || "").trim()}
+                        alt={dbUser.full_name}
+                      />
+                      <AvatarFallback className="text-xs sm:text-sm">
+                        {(dbUser.full_name || user.email || "U")
+                          .charAt(0)
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
@@ -177,12 +185,20 @@ const Header = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           ) : (
-            <Link href="/login">
-              <Button className="hidden md:flex font-semibold h-9 sm:h-10 px-3 sm:px-5 text-xs sm:text-sm">
-                Đăng nhập
-              </Button>
-            </Link>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Link href="/pricing" className="shrink-0">
+                <Button className="hidden md:flex font-semibold h-9 sm:h-10 px-3 sm:px-5 text-xs sm:text-sm bg-primary hover:bg-primary/90">
+                  Bảng giá
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button className="hidden md:flex font-semibold h-9 sm:h-10 px-3 sm:px-5 text-xs sm:text-sm">
+                  Đăng nhập
+                </Button>
+              </Link>
+            </div>
           )}
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -238,6 +254,11 @@ const Header = () => {
                   ))}
                 </div>
                 <div className="flex flex-col gap-3 p-6 border-t border-slate-200 dark:border-slate-900">
+                  <SheetClose asChild>
+                    <Link href="/pricing">
+                      <Button className="w-full">Bảng giá</Button>
+                    </Link>
+                  </SheetClose>
                   <Button
                     variant="ghost"
                     className="w-full text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-900 justify-start gap-3"

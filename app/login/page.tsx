@@ -84,7 +84,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-blue-50 dark:bg-slate-900">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-blue-50 dark:bg-black">
       <main className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
@@ -107,7 +107,7 @@ export default function LoginPage() {
             type="button"
             onClick={signInWithGoogle}
             disabled={isLoading}
-            className="w-full h-12 flex items-center justify-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 flex items-center justify-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-slate-700 dark:border-slate-200 border-t-transparent rounded-full animate-spin"></div>
@@ -129,7 +129,7 @@ export default function LoginPage() {
           <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-blue-100 dark:border-slate-700">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-blue-100 dark:border-slate-800">
           <div>
             <label htmlFor="email" className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
             <div className="relative">
@@ -142,7 +142,7 @@ export default function LoginPage() {
                 onChange={handleChange}
                 required
                 placeholder="Nhập vào email của bạn"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-blue-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all"
               ></input>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function LoginPage() {
                 onChange={handleChange}
                 required
                 placeholder="Nhập vào mật khẩu của bạn"
-                className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-blue-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all"
+                className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all"
               ></input>
               <button
                 type="button"
