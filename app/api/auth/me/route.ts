@@ -20,10 +20,11 @@ export async function GET(req: NextRequest) {
     const decoded = jwt.verify(token, secret) as JwtPayload;
 
     const pool = await dbConnect();
-    const [users] = (await pool.execute(
-      "SELECT * FROM users WHERE id = ?",
+    const usersResult = await pool.query(
+      "SELECT * FROM users WHERE id = $1",
       [decoded.id],
-    )) as any;
+    );
+    const users = usersResult.rows;
 
     if (users.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

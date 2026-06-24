@@ -54,10 +54,11 @@ export async function PUT(
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     const pool = await dbConnect();
-    const [currentUsers] = (await pool.execute(
-      "SELECT * FROM users WHERE id = ?",
+    const currentResult = await pool.query(
+      "SELECT * FROM users WHERE id = $1",
       [decoded.id],
-    )) as any;
+    );
+    const currentUsers = currentResult.rows;
     if (currentUsers.length === 0) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
@@ -112,10 +113,11 @@ export async function DELETE(
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     const pool = await dbConnect();
-    const [currentUsers] = (await pool.execute(
-      "SELECT * FROM users WHERE id = ?",
+    const currentResult = await pool.query(
+      "SELECT * FROM users WHERE id = $1",
       [decoded.id],
-    )) as any;
+    );
+    const currentUsers = currentResult.rows;
     if (currentUsers.length === 0) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
