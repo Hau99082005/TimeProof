@@ -17,6 +17,7 @@ import {
   Trash2,
   Edit,
   Upload,
+  X,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,22 +34,26 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
-import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/lib/store";
+import { Technology } from "@/model/technology";
 import {
-  fetchBanners,
-  createBanner,
-  deleteBanner,
-} from "@/lib/reduxslice/bannerSlice";
+  fetchTechnologies,
+  createTechnology,
+  updateTechnology,
+  deleteTechnology,
+} from "@/lib/reduxslice/technologySlice";
 
-export default function AllBanner() {
+const AllTechnoly = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { banners, isLoading, isUploading, error } = useSelector(
-    (state: RootState) => state.banner,
+  const { technologies, isLoading, isUploading, error } = useSelector(
+    (state: RootState) => state.technology,
   );
-  const [title, setTitle] = useState("");
+  const [name, setName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [editingTech, setEditingTech] = useState<Technology | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editSelectedFile, setEditSelectedFile] = useState<File | null>(null);
   const { signOut } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,39 +61,71 @@ export default function AllBanner() {
 
     try {
       const formData = new FormData();
-      formData.append("title", title);
+      formData.append("name", name);
       if (selectedFile) {
         formData.append("image", selectedFile);
       }
 
-      await dispatch(createBanner(formData)).unwrap();
-      toast.success("Tạo banner thành công!");
-      setTitle("");
+      await dispatch(createTechnology(formData)).unwrap();
+      toast.success("Tạo công nghệ thành công!");
+      setName("");
       setSelectedFile(null);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Không thể tạo banner";
+        err instanceof Error ? err.message : "Không thể tạo công nghệ";
       toast.error(errorMessage);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Bạn có chắc muốn xóa banner này?")) {
+    if (!confirm("Bạn có chắc muốn xóa công nghệ này?")) {
       return;
     }
 
     try {
-      await dispatch(deleteBanner(id)).unwrap();
-      toast.success("Xóa banner thành công!");
+      await dispatch(deleteTechnology(id)).unwrap();
+      toast.success("Xóa công nghệ thành công!");
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Không thể xóa banner";
+        err instanceof Error ? err.message : "Không thể xóa công nghệ";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleEdit = (tech: Technology) => {
+    setEditingTech(tech);
+    setEditName(tech.name);
+    setEditSelectedFile(null);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingTech) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("name", editName);
+      if (editSelectedFile) {
+        formData.append("image", editSelectedFile);
+      }
+
+      await dispatch(
+        updateTechnology({ id: editingTech.id, formData }),
+      ).unwrap();
+      toast.success("Cập nhật công nghệ thành công!");
+      setEditingTech(null);
+      setEditName("");
+      setEditSelectedFile(null);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Không thể cập nhật công nghệ";
       toast.error(errorMessage);
     }
   };
 
   useEffect(() => {
-    dispatch(fetchBanners());
+    dispatch(fetchTechnologies());
   }, [dispatch]);
 
   return (
@@ -127,7 +164,6 @@ export default function AllBanner() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <DropdownMenuSeparator />
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link href="/" className="flex items-center gap-2">
@@ -136,7 +172,6 @@ export default function AllBanner() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <DropdownMenuSeparator />
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link href="/settings" className="flex items-center gap-2">
@@ -145,9 +180,8 @@ export default function AllBanner() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <DropdownMenuSeparator />
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive>
+                  <SidebarMenuButton asChild>
                     <Link
                       href="/dashboard/admin/allBanner"
                       className="flex items-center gap-2"
@@ -157,9 +191,8 @@ export default function AllBanner() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <DropdownMenuSeparator />
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild isActive>
                     <Link
                       href="/dashboard/admin/technologies"
                       className="flex items-center gap-2"
@@ -190,7 +223,7 @@ export default function AllBanner() {
         <header className="flex h-14 sm:h-16 items-center gap-2 sm:gap-4 px-3 sm:px-4 md:px-8 border-b bg-background sticky top-0 z-10 shrink-0">
           <SidebarTrigger />
           <h1 className="text-base sm:text-lg md:text-2xl font-bold truncate flex-1">
-            Quản lý Banner
+            Quản lý Công nghệ
           </h1>
         </header>
         <div className="flex-1 p-3 md:p-8 lg:p-12 w-full overflow-y-auto">
@@ -198,14 +231,14 @@ export default function AllBanner() {
             <div className="flex flex-wrap items-center justify-between gap-4 w-full">
               <div className="space-y-1">
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                  Danh sách Banner
+                  Danh sách Công nghệ
                 </h2>
                 <p className="text-muted-foreground text-sm md:text-base">
-                  Quản lý các banner hiển thị trên trang chủ
+                  Quản lý các công nghệ
                 </p>
               </div>
               <Button
-                onClick={() => dispatch(fetchBanners())}
+                onClick={() => dispatch(fetchTechnologies())}
                 disabled={isLoading}
                 className="flex items-center gap-2"
               >
@@ -225,27 +258,30 @@ export default function AllBanner() {
                 <div className="col-span-full flex justify-center py-12">
                   <div className="size-10 border-4 border-current border-t-transparent rounded-full animate-spin" />
                 </div>
-              ) : banners.length === 0 ? (
+              ) : technologies.length === 0 ? (
                 <Card className="md:col-span-2 lg:col-span-3 w-full">
                   <CardContent className="flex flex-col items-center justify-center py-12 md:py-16 lg:py-20">
                     <ImageIcon className="size-12 md:size-16 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground text-sm md:text-base">
-                      Chưa có banner nào
+                      Chưa có công nghệ nào
                     </p>
                   </CardContent>
                 </Card>
               ) : (
-                banners.map((banner) => (
+                technologies.map((tech) => (
                   <Card
-                    key={banner.id}
+                    key={tech.id}
                     className="transition-all duration-200 hover:shadow-md w-full"
+                    style={{
+                      borderRadius: "8px",
+                    }}
                   >
                     <div className="relative">
-                      <div className="aspect-video bg-muted flex items-center justify-center">
-                        {banner.image_url ? (
+                      <div className="aspect-video bg-muted flex items-center justify-center0 border-b-2">
+                        {tech.images ? (
                           <img
-                            src={banner.image_url}
-                            alt={banner.title}
+                            src={tech.images}
+                            alt={tech.name}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -253,27 +289,28 @@ export default function AllBanner() {
                         )}
                       </div>
                       <div className="absolute top-2 right-2 flex gap-2">
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          className="h-8 w-8"
-                        >
-                          <Edit className="size-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="h-8 w-8"
-                          onClick={() => handleDelete(banner.id)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-8 w-8"
+                        onClick={() => handleEdit(tech)}
+                      >
+                        <Edit className="size-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="h-8 w-8"
+                        onClick={() => handleDelete(tech.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                     </div>
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm md:text-base">
-                          {banner.title}
+                          {tech.name}
                         </CardTitle>
                       </div>
                     </CardHeader>
@@ -285,7 +322,7 @@ export default function AllBanner() {
             <Card className="transition-all duration-200 hover:shadow-md w-full">
               <CardHeader>
                 <CardTitle className="text-sm md:text-lg">
-                  Thêm banner mới
+                  Thêm công nghệ mới
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 md:space-y-6">
@@ -294,17 +331,14 @@ export default function AllBanner() {
                   className="space-y-4 md:space-y-6"
                 >
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="banner-title"
-                      className="text-sm md:text-base"
-                    >
-                      Tiêu đề
+                    <Label htmlFor="tech-name" className="text-sm md:text-base">
+                      Tên công nghệ
                     </Label>
                     <Input
-                      id="banner-title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Nhập tiêu đề banner"
+                      id="tech-name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Nhập tên công nghệ"
                       className="text-sm md:text-base"
                       required
                     />
@@ -312,7 +346,7 @@ export default function AllBanner() {
 
                   <div className="space-y-2">
                     <Label
-                      htmlFor="banner-image"
+                      htmlFor="tech-image"
                       className="text-sm md:text-base"
                     >
                       Hình ảnh
@@ -342,7 +376,7 @@ export default function AllBanner() {
                           <ImageIcon className="size-8 md:size-10 text-muted-foreground" />
                           <input
                             type="file"
-                            id="banner-image"
+                            id="tech-image"
                             accept="image/*"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
@@ -352,7 +386,7 @@ export default function AllBanner() {
                                   /\.[^/.]+$/,
                                   "",
                                 );
-                                setTitle(fileName);
+                                setName(fileName);
                               }
                             }}
                             className="hidden"
@@ -361,7 +395,7 @@ export default function AllBanner() {
                             variant="secondary"
                             type="button"
                             onClick={() =>
-                              document.getElementById("banner-image")?.click()
+                              document.getElementById("tech-image")?.click()
                             }
                             className="flex items-center gap-2"
                           >
@@ -385,7 +419,7 @@ export default function AllBanner() {
                           Đang tải...
                         </>
                       ) : (
-                        "Lưu banner"
+                        "Lưu công nghệ"
                       )}
                     </Button>
                   </div>
@@ -395,6 +429,117 @@ export default function AllBanner() {
           </div>
         </div>
       </SidebarInset>
+      
+      {/* Modal sửa công nghệ */}
+      {editingTech && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+          <div className="bg-white shadow-lg w-full max-w-md mx-4 relative z-[10000] p-0">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">Sửa công nghệ</h3>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setEditingTech(null)}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+            <form onSubmit={handleUpdate} className="p-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name" className="block text-sm font-medium text-gray-700">Tên công nghệ</Label>
+                <Input
+                  id="edit-name"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Nhập tên công nghệ"
+                  required
+                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-800"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-image" className="block text-sm font-medium text-gray-700">Hình ảnh</Label>
+                <div className="border-2 border-dashed border-gray-300 p-4 flex flex-col items-center justify-center gap-2">
+                  {editSelectedFile ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <img
+                        src={URL.createObjectURL(editSelectedFile)}
+                        alt="Preview"
+                        className="max-h-32 object-contain"
+                      />
+                      <p className="text-sm text-gray-500">
+                        {editSelectedFile.name}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setEditSelectedFile(null)}
+                      >
+                        Xóa ảnh
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      {editingTech.images && (
+                        <img
+                          src={editingTech.images}
+                          alt={editingTech.name}
+                          className="max-h-32 object-contain"
+                        />
+                      )}
+                      <ImageIcon className="size-8 text-gray-500" />
+                      <input
+                        type="file"
+                        id="edit-image"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setEditSelectedFile(file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <Button
+                        variant="secondary"
+                        type="button"
+                        onClick={() =>
+                          document.getElementById("edit-image")?.click()
+                        }
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="size-4" />
+                        Chọn ảnh mới
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setEditingTech(null)}
+                >
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={isUploading}>
+                  {isUploading ? (
+                    <>
+                      <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Đang cập nhật...
+                    </>
+                  ) : (
+                    "Cập nhật"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default AllTechnoly;
