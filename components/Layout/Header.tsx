@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Menu,
   X,
@@ -40,8 +41,12 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const { theme, setTheme } = useTheme();
   const { user, dbUser, loading, signOut } = useAuth();
+  const router = useRouter();
 
   const navItems = [
     { name: "Source Code", icon: Code2, href: "/source-code" },
@@ -52,6 +57,14 @@ const Header = () => {
     { name: "Công nghệ", icon: Building2, href: "/technology" },
     { name: "Bài viết", icon: Newspaper, href: "/news" },
   ];
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setIsSearchOpen(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-blue-50 dark:bg-black border-b border-blue-100 dark:border-slate-900">
@@ -81,13 +94,32 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden md:flex text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-100 dark:hover:bg-slate-900 h-9 sm:h-10 w-9 sm:w-10"
-          >
-            <Search size={20} />
-          </Button>
+          {/* PHẦN SEARCH DESKTOP VÀ MOBILE */}
+          {isSearchOpen ? (
+            <form onSubmit={handleSearch} className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-blue-200 dark:border-slate-800 px-2.5 py-1 sm:py-1.5 rounded-xl max-w-[130px] sm:max-w-[220px] animate-in fade-in duration-150">
+              <input
+                type="text"
+                autoFocus
+                placeholder="Tìm kiếm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent border-none outline-none text-xs text-slate-700 dark:text-slate-200 p-0 focus:ring-0"
+              />
+              <button type="button" onClick={() => setIsSearchOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 shrink-0">
+                <X size={14} />
+              </button>
+            </form>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSearchOpen(true)}
+              className="text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-blue-100 dark:hover:bg-slate-900 h-9 sm:h-10 w-9 sm:w-10"
+            >
+              <Search size={20} />
+            </Button>
+          )}
+
           <Button
             variant="ghost"
             size="icon"
@@ -139,59 +171,59 @@ const Header = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col">
-                    <span className="font-semibold">{dbUser.full_name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {dbUser.email}
-                    </span>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {dbUser.role === "admin" && (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/dashboard/admin"
-                        className="flex items-center gap-2 cursor-pointer"
-                      >
-                        <LayoutDashboard size={16} />
-                        Quản trị admin
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/settings"
-                    className="flex items-center gap-2 cursor-pointer"
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="font-semibold">{dbUser.full_name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {dbUser.email}
+                      </span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {dbUser.role === "admin" && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/dashboard/admin"
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <LayoutDashboard size={16} />
+                          Quản trị admin
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/settings"
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <Settings size={16} />
+                      Cài đặt tài khoản
+                        </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/"
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <Home size={16} />
+                      Về trang chủ
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={signOut}
+                    className="text-red-600 dark:text-red-400 cursor-pointer"
                   >
-                    <Settings size={16} />
-                    Cài đặt tài khoản
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/"
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <Home size={16} />
-                    Về trang chủ
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={signOut}
-                  className="text-red-600 dark:text-red-400 cursor-pointer"
-                >
-                  <LogOut size={16} className="mr-2" />
-                  Đăng xuất
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <LogOut size={16} className="mr-2" />
+                    Đăng xuất
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <div className="flex items-center gap-1 sm:gap-2">
