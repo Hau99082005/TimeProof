@@ -22,10 +22,11 @@ export async function POST(req: NextRequest) {
     }
 
     const pool = await dbConnect();
-    const [users] = (await pool.execute(
-      "SELECT * FROM users WHERE email = ?",
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
       [email.trim()]
-    )) as any;
+    );
+    const users = result.rows;
 
     if (users.length === 0) {
       return NextResponse.json(
