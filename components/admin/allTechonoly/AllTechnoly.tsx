@@ -368,76 +368,84 @@ const AllTechnoly = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-between gap-4 mt-6">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">
-                    Hiển thị {startIndex + 1} -{" "}
-                    {Math.min(endIndex, technologies.length)} của{" "}
-                    {technologies.length}
-                  </span>
+              <div className="flex items-center justify-center gap-2 pt-6">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg transition-all duration-200"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {totalPages <= 7 ? (
+                    Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-9 h-9 rounded-lg transition-all duration-200"
+                      >
+                        {page}
+                      </Button>
+                    ))
+                  ) : (
+                    <>
+                      <Button
+                        variant={currentPage === 1 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(1)}
+                        className="w-9 h-9 rounded-lg transition-all duration-200"
+                      >
+                        1
+                      </Button>
+                      {currentPage > 3 && <span className="text-muted-foreground px-1">...</span>}
+                      {Array.from(
+                        { length: Math.min(5, totalPages - 2) },
+                        (_, i) => {
+                          const page = Math.max(2, currentPage - 2) + i;
+                          return page < totalPages ? (
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className="w-9 h-9 rounded-lg transition-all duration-200"
+                            >
+                              {page}
+                            </Button>
+                          ) : null;
+                        },
+                      )}
+                      {currentPage < totalPages - 2 && <span className="text-muted-foreground px-1">...</span>}
+                      <Button
+                        variant={currentPage === totalPages ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(totalPages)}
+                        className="w-9 h-9 rounded-lg transition-all duration-200"
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1}
-                  >
-                    <span className="sr-only">Trang trước</span>
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                  </Button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
-                        <Button
-                          key={page}
-                          variant={currentPage === page ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setCurrentPage(page)}
-                        >
-                          {page}
-                        </Button>
-                      ),
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                  >
-                    <span className="sr-only">Trang sau</span>
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Button>
-                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-lg transition-all duration-200"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Button>
               </div>
             )}
 
