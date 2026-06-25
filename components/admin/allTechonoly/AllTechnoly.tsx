@@ -66,7 +66,6 @@ const AllTechnoly = () => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  // Tính toán phân trang
   const totalPages = Math.ceil(technologies.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -162,7 +161,7 @@ const AllTechnoly = () => {
             <span>TimeProof</span>
           </div>
         </SidebarHeader>
-       <SidebarContent>
+        <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel
               style={{
@@ -363,7 +362,6 @@ const AllTechnoly = () => {
               )}
             </div>
 
-            {/* Phân trang */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between gap-4 mt-6">
                 <div className="flex items-center gap-2">
@@ -474,7 +472,7 @@ const AllTechnoly = () => {
                       id="tech-category"
                       value={categoryId}
                       onChange={(e) => setCategoryId(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm md:text-base"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm md:text-base text-gray-500"
                     >
                       <option value="">Chọn danh mục</option>
                       {categories.map((cat) => (
@@ -600,7 +598,10 @@ const AllTechnoly = () => {
                 />
               </div>
               <div className="space-y-2.5">
-                <Label htmlFor="edit-category" className="text-sm font-semibold">
+                <Label
+                  htmlFor="edit-category"
+                  className="text-sm font-semibold"
+                >
                   Danh mục
                 </Label>
                 <select
