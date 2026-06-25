@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 import { 
   Search, 
   MessageSquare, 
@@ -18,7 +19,6 @@ import {
   User, 
   ArrowUpRight,
   Bookmark,
-  CheckCircle,
   MessageCircle
 } from "lucide-react";
 
@@ -107,7 +107,17 @@ export default function ArticlesHub() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTag, setActiveTag] = useState("");
   const [isSortOpen, setIsSortOpen] = useState(false);
-  const [sortBy, setSortBy] = useState("latest"); // "latest" | "popular"
+  const [sortBy, setSortBy] = useState("latest");
+
+  // Đồng bộ hóa trạng thái giao diện Next-Themes (Tránh lỗi Hydration Mismatch)
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && theme === "dark";
 
   // 1. Logic lọc dữ liệu bài viết
   const filteredArticles = ARTICLES_DATA.filter(post => {
@@ -125,50 +135,66 @@ export default function ArticlesHub() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
+    <div className={`min-h-screen transition-colors duration-300 font-sans antialiased w-full overflow-x-hidden ${
+      isDark ? "bg-black text-slate-100" : "bg-slate-50 text-slate-900"
+    }`}>
       
-      {/* HEADER ỨNG DỤNG TINH GỌN */}
-      <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 backdrop-blur-md bg-white/80">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-blue-600" />
-                Diễn Đàn Tri Thức Công Nghệ
+      {/* ─── PHẦN ĐẦU TRANG CÂN ĐỐI TRỤC DỌC (ĐÃ SỬA LỖI OVERLAP CHÈN NỘI DUNG) ─── */}
+      <div className={`border-b relative z-10 transition-colors duration-300 w-full ${
+        isDark ? "bg-black border-slate-900" : "bg-white border-slate-200/80"
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-7">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+            
+            <div className="min-w-0 space-y-1">
+              <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-tight flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 sm:w-5 h-5 text-blue-600 dark:text-blue-500 flex-shrink-0" />
+                <span>Diễn Đàn Tri Thức Công Nghệ</span>
               </h1>
-              <p className="text-xs text-slate-500 mt-0.5">Không gian thảo luận, giải thích thuật ngữ và chia sẻ kinh nghiệm thực chiến lập trình.</p>
+              <p className={`text-[11px] sm:text-xs transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                Không gian thảo luận, giải thích thuật ngữ và chia sẻ kinh nghiệm thực chiến lập trình.
+              </p>
             </div>
             
-            {/* Thanh tìm kiếm */}
-            <div className="relative flex-1 max-w-xl md:ml-8">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            {/* Hộp tìm kiếm cân xứng tương thích đa thiết bị */}
+            <div className="relative w-full md:w-80 lg:w-[400px] min-w-0 flex-shrink-0">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Tìm bài viết, câu hỏi phỏng vấn, kinh nghiệm làm đồ án..."
+                placeholder="Tìm bài viết, câu hỏi, từ khóa..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                className={`w-full pl-10 pr-9 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${
+                  isDark 
+                    ? "bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus:bg-slate-900/40" 
+                    : "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                }`}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600">
-                  <X className="w-3 h-3" />
+                <button onClick={() => setSearchQuery("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
+
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* BỐ CỤC KHÔNG GIAN HAI CỘT */}
-      <main className="container mx-auto px-6 py-8 grid lg:grid-cols-12 gap-8">
+      {/* BỐ CỤC KHÔNG GIAN LÀM VIỆC CHÍNH */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8 grid lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 w-full">
         
-        {/* SIDEBAR LỌC DANH MỤC (CỘT TRÁI) */}
-        <aside className="lg:col-span-3 space-y-6">
+        {/* SIDEBAR BỘ LỌC LUỒNG THÔNG TIN & TAGS */}
+        <aside className="lg:col-span-3 w-full min-w-0 space-y-4 sm:space-y-6">
           
-          {/* Nhóm Bộ Lọc Loại Bài Viết */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-4">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block px-2 mb-3">Phân loại luồng thông tin</span>
-            <div className="space-y-1">
+          {/* Phân loại luồng thông tin */}
+          <div className={`rounded-2xl border p-3 sm:p-4 transition-colors duration-300 ${
+            isDark ? "bg-slate-950 border-slate-900" : "bg-white border-slate-200/60"
+          }`}>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block mb-2 px-1 text-slate-400 dark:text-slate-500">
+              Phân loại luồng thông tin
+            </span>
+            <div className="flex flex-wrap lg:flex-col gap-1.5">
               {POST_TYPES.map((type) => {
                 const IconComponent = type.icon;
                 const isActive = selectedType === type.id;
@@ -176,34 +202,42 @@ export default function ArticlesHub() {
                   <button
                     key={type.id}
                     onClick={() => { setSelectedType(type.id); setActiveTag(""); }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    className={`flex items-center gap-2 px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold transition-all w-full ${
                       isActive 
-                        ? "bg-blue-50 text-blue-600 shadow-sm" 
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/10 dark:shadow-none" 
+                        : isDark
+                          ? "bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+                          : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
-                    <IconComponent className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
-                    {type.name}
+                    <IconComponent className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-white" : "text-blue-500"}`} />
+                    <span className="truncate">{type.name}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Nhóm Thẻ Tags Phổ Biến */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-4">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block px-2 mb-3">Từ khóa thịnh hành</span>
-            <div className="flex flex-wrap gap-1.5 p-1">
+          {/* Từ khóa thịnh hành */}
+          <div className={`rounded-2xl border p-3 sm:p-4 transition-colors duration-300 ${
+            isDark ? "bg-slate-950 border-slate-900" : "bg-white border-slate-200/60"
+          }`}>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block mb-2 px-1 text-slate-400 dark:text-slate-500">
+              Từ khóa thịnh hành
+            </span>
+            <div className="flex flex-wrap gap-1.5 p-0.5">
               {POPULAR_TAGS.map((tag) => {
                 const isTagActive = activeTag === tag;
                 return (
                   <button
                     key={tag}
                     onClick={() => setActiveTag(isTagActive ? "" : tag)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1 ${
+                    className={`px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-medium border transition-all flex items-center gap-1 ${
                       isTagActive 
                         ? "bg-blue-600 border-blue-600 text-white shadow-sm" 
-                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                        : isDark
+                          ? "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                     }`}
                   >
                     <Tag className="w-3 h-3 opacity-60" />
@@ -214,8 +248,8 @@ export default function ArticlesHub() {
             </div>
           </div>
 
-          {/* Tiện ích đóng góp thảo luận */}
-          <div className="bg-gradient-to-br from-blue-600 to-sky-500 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+          {/* Tiện ích ẩn trên di động */}
+          <div className="hidden lg:block bg-gradient-to-br from-blue-600 to-sky-500 rounded-2xl p-5 text-white shadow-sm relative overflow-hidden border border-blue-700">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
             <Sparkles className="w-5 h-5 text-sky-200 mb-3" />
             <h4 className="font-bold text-sm mb-1">Cộng đồng mở rộng</h4>
@@ -227,21 +261,24 @@ export default function ArticlesHub() {
 
         </aside>
 
-        {/* DANH SÁCH BÀI VIẾT FEED-STYLE (CỘT PHẢI) */}
-        <section className="lg:col-span-9 space-y-4">
+        {/* DANH SÁCH BÀI VIẾT FEED-STYLE */}
+        <section className="lg:col-span-9 space-y-3.5 w-full min-w-0">
           
-          {/* THANH ĐIỀU KHIỂN SẮP XẾP */}
-          <div className="flex items-center justify-between text-xs font-medium text-slate-500 bg-white border border-slate-200/60 px-4 py-3 rounded-xl relative">
-            <div>Hiển thị <span className="font-bold text-slate-800">{sortedArticles.length}</span> bài thảo luận</div>
+          {/* Thanh số liệu kết quả */}
+          <div className={`flex items-center justify-between text-[11px] sm:text-xs font-medium border px-3.5 py-2.5 rounded-xl relative w-full transition-colors duration-300 ${
+            isDark ? "bg-slate-950 border-slate-900 text-slate-400" : "bg-white border-slate-200/60 text-slate-500"
+          }`}>
+            <div className="truncate">Hiển thị <span className="font-bold text-slate-800 dark:text-white">{sortedArticles.length}</span> bài thảo luận</div>
             
-            {/* Vùng Dropdown Sắp xếp */}
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <button 
                 onClick={() => setIsSortOpen(!isSortOpen)}
-                className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg text-slate-700 font-semibold transition-all duration-150"
+                className={`flex items-center gap-1 border px-2.5 py-1.5 rounded-lg font-semibold text-[11px] sm:text-xs transition-colors ${
+                  isDark ? "bg-slate-900 border-slate-800 text-slate-200" : "bg-slate-50 border-slate-200 text-slate-700"
+                }`}
               >
-                Sắp xếp: {sortBy === "latest" ? "Mới nhất" : "Xem nhiều nhất"}
-                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isSortOpen ? "rotate-180" : ""}`} />
+                <span>Sắp xếp: {sortBy === "latest" ? "Mới nhất" : "Xem nhiều nhất"}</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
               </button>
 
               <AnimatePresence>
@@ -249,28 +286,15 @@ export default function ArticlesHub() {
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setIsSortOpen(false)} />
                     <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                      transition={{ duration: 0.12, ease: "easeOut" }}
-                      className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 shadow-xl rounded-xl py-1.5 z-20 origin-top-right"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      className={`absolute right-0 mt-1 w-40 border shadow-xl rounded-xl py-1 z-20 origin-top-right transition-colors ${
+                        isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                      }`}
                     >
-                      <button
-                        onClick={() => { setSortBy("latest"); setIsSortOpen(false); }}
-                        className={`w-full text-left px-3.5 py-2 text-xs font-medium hover:bg-slate-50 transition-colors ${
-                          sortBy === "latest" ? "text-blue-600 bg-blue-50/40 font-bold" : "text-slate-600"
-                        }`}
-                      >
-                        Mới nhất
-                      </button>
-                      <button
-                        onClick={() => { setSortBy("popular"); setIsSortOpen(false); }}
-                        className={`w-full text-left px-3.5 py-2 text-xs font-medium hover:bg-slate-50 transition-colors ${
-                          sortBy === "popular" ? "text-blue-600 bg-blue-50/40 font-bold" : "text-slate-600"
-                        }`}
-                      >
-                        Xem nhiều nhất
-                      </button>
+                      <button onClick={() => { setSortBy("latest"); setIsSortOpen(false); }} className={`w-full text-left px-3 py-1.5 text-[11px] ${isDark ? "text-slate-300 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-50"}`}>Mới nhất</button>
+                      <button onClick={() => { setSortBy("popular"); setIsSortOpen(false); }} className={`w-full text-left px-3 py-1.5 text-[11px] ${isDark ? "text-slate-300 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-50"}`}>Xem nhiều nhất</button>
                     </motion.div>
                   </>
                 )}
@@ -278,77 +302,82 @@ export default function ArticlesHub() {
             </div>
           </div>
 
-          {/* DANH SÁCH BÀI VIẾT THỰC TẾ */}
-          <div className="space-y-4">
+          {/* KHU VỰC THỂ HIỆN FEED BÀI VIẾT */}
+          <div className="space-y-3.5 w-full">
             <AnimatePresence mode="popLayout">
               {sortedArticles.map((post) => (
                 <motion.div
                   layout
                   key={post.id}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="bg-white border border-slate-200/60 rounded-2xl p-6 hover:shadow-xl hover:shadow-blue-900/[0.01] hover:border-blue-200/50 transition-all duration-300 group flex flex-col justify-between"
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
+                  className={`border rounded-2xl p-4 sm:p-6 flex flex-col justify-between transition-all w-full min-w-0 group ${
+                    isDark 
+                      ? "bg-slate-950 border-slate-900 hover:border-slate-800" 
+                      : "bg-white border-slate-200 hover:border-blue-200"
+                  }`}
                 >
-                  <div>
-                    {/* Hàng thông tin trên cùng: Tác giả, Thời gian, Loại bài viết */}
+                  <div className="min-w-0">
+                    {/* Hàng thông tin trên cùng */}
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <div className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] flex items-center justify-center border border-blue-100">
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="w-5 h-5 rounded-full bg-blue-50 dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-bold text-[10px] flex items-center justify-center border border-blue-100 dark:border-slate-800 flex-shrink-0">
                           {post.author.charAt(0)}
                         </div>
-                        <span className="font-semibold text-slate-700">{post.author}</span>
-                        <span className="text-slate-300">•</span>
-                        <span>{post.date}</span>
-                        <span className="text-slate-300">•</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {post.time}</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[100px] sm:max-w-none">{post.author}</span>
+                        <span className="text-slate-300 dark:text-slate-700">•</span>
+                        <span className="whitespace-nowrap">{post.date}</span>
+                        <span className="text-slate-300 dark:text-slate-700">•</span>
+                        <span className="flex items-center gap-1 whitespace-nowrap"><Clock className="w-3 h-3" /> {post.time}</span>
                       </div>
 
-                      {/* Loại Badge phân hệ */}
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        post.type === "experience" ? "bg-purple-50 text-purple-600 border border-purple-100" :
-                        post.type === "explanation" ? "bg-blue-50 text-blue-600 border border-blue-100" :
-                        "bg-amber-50 text-amber-700 border border-amber-100"
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 ${
+                        post.type === "experience" ? "bg-purple-50 text-purple-600 border border-purple-100 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900/30" :
+                        post.type === "explanation" ? "bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/30" :
+                        "bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/30"
                       }`}>
                         {post.type === "experience" ? "Kinh nghiệm" : post.type === "explanation" ? "Giải thích" : "Hỏi đáp"}
                       </span>
                     </div>
 
-                    {/* Tiêu đề thảo luận */}
-                    <h3 className="font-bold text-base text-slate-800 group-hover:text-blue-600 transition-colors leading-snug mb-2">
+                    {/* Tiêu đề */}
+                    <h3 className={`font-bold text-sm sm:text-base transition-colors leading-snug mb-2 ${isDark ? "text-white group-hover:text-blue-400" : "text-slate-800 group-hover:text-blue-600"}`}>
                       {post.title}
                     </h3>
 
-                    {/* Tóm tắt ngắn nội dung bài viết */}
-                    <p className="text-xs text-slate-500 leading-relaxed mb-4 line-clamp-2">
+                    {/* Tóm tắt */}
+                    <p className={`text-xs leading-relaxed mb-4 text-justify line-clamp-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                       {post.summary}
                     </p>
                   </div>
 
-                  {/* Phần chân bài viết chứa Thẻ tags kỹ thuật và Tương tác số liệu */}
-                  <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex flex-wrap gap-1.5">
+                  {/* Phần chân bài viết */}
+                  <div className={`pt-4 border-t flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full min-w-0 ${isDark ? "border-slate-900" : "border-slate-100"}`}>
+                    <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
                       {post.tags.map((tag, i) => (
-                        <span key={i} className="text-[10px] font-medium font-mono text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                        <span key={i} className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded border ${
+                          isDark ? "text-slate-400 bg-slate-900 border-slate-800/80" : "text-slate-500 bg-slate-50 border-slate-100"
+                        }`}>
                           #{tag}
                         </span>
                       ))}
                     </div>
 
-                    {/* Thống kê tương tác: Thích, Xem, Bình luận */}
-                    <div className="flex items-center justify-between sm:justify-end gap-6 text-slate-400 text-[11px] font-medium">
+                    {/* Tương tác số liệu */}
+                    <div className="flex items-center justify-between sm:justify-end gap-4 text-slate-400 dark:text-slate-500 text-[11px] font-medium flex-shrink-0 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-900">
                       <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1 hover:text-blue-600 cursor-pointer"><ThumbsUp className="w-3.5 h-3.5" /> {post.likes}</span>
-                        <span className="flex items-center gap-1 hover:text-blue-600 cursor-pointer"><MessageCircle className="w-3.5 h-3.5" /> {post.comments}</span>
+                        <span className="flex items-center gap-1 hover:text-blue-500 cursor-pointer"><ThumbsUp className="w-3.5 h-3.5" /> {post.likes}</span>
+                        <span className="flex items-center gap-1 hover:text-blue-500 cursor-pointer"><MessageCircle className="w-3.5 h-3.5" /> {post.comments}</span>
                         <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {post.views}</span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
-                        <button className="p-1 text-slate-400 hover:text-blue-600 rounded transition-colors">
+                      <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-4">
+                        <button className="p-1 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 rounded transition-colors">
                           <Bookmark className="w-3.5 h-3.5" />
                         </button>
-                        <button className="text-blue-600 text-[11px] font-bold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                        <button className="text-blue-600 dark:text-blue-400 text-[11px] font-bold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform whitespace-nowrap">
                           Đọc tiếp <ArrowUpRight className="w-3 h-3" />
                         </button>
                       </div>
@@ -358,23 +387,27 @@ export default function ArticlesHub() {
                 </motion.div>
               ))}
             </AnimatePresence>
-
-            {/* Trạng thái rỗng khi tìm kiếm không ra kết quả */}
-            {sortedArticles.length === 0 && (
-              <div className="text-center py-16 bg-white border border-dashed border-slate-200 rounded-3xl space-y-3">
-                <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mx-auto">
-                  <Search className="w-5 h-5" />
-                </div>
-                <h4 className="font-bold text-sm text-slate-700">Không tìm thấy bài viết nào</h4>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">Thử đổi từ khóa tìm kiếm hoặc bấm vào bộ lọc danh mục bên trái để làm mới luồng dữ liệu.</p>
-              </div>
-            )}
           </div>
+
+          {/* TRẠNG THÁI TRỐNG */}
+          {sortedArticles.length === 0 && (
+            <div className={`text-center py-16 border border-dashed rounded-3xl space-y-3 w-full ${
+              isDark ? "bg-slate-950 border-slate-900" : "bg-white border-slate-200"
+            }`}>
+              <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 mx-auto">
+                <Search className="w-5 h-5" />
+              </div>
+              <h4 className="font-bold text-sm text-slate-700 dark:text-slate-300">Không tìm thấy bài viết nào</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto px-4">Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục luồng thông tin khác.</p>
+            </div>
+          )}
 
           {/* PHÂN TRANG */}
           {sortedArticles.length > 0 && (
-            <div className="flex items-center justify-center pt-4">
-              <button className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-xs font-bold text-slate-700 transition-colors shadow-sm">
+            <div className="flex items-center justify-center pt-2">
+              <button className={`px-5 py-2.5 rounded-xl border text-xs font-bold transition-all w-full sm:w-auto shadow-sm ${
+                isDark ? "bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300" : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
+              }`}>
                 Tải Thêm Bài Viết
               </button>
             </div>

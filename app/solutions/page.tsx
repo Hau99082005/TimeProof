@@ -1,23 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 import { 
   Search, 
   Code2, 
+  FolderGit2, 
+  GitFork, 
+  Star, 
+  Eye, 
+  ChevronDown, 
+  Copy, 
+  Check, 
+  X, 
   Terminal, 
   Layers, 
-  Cpu, 
-  Database, 
-  Cloud, 
-  BookOpen, 
-  Clock, 
-  User, 
-  Bookmark,
-  ChevronDown,
-  ArrowUpRight,
+  FileCode,
   Sparkles,
-  X
+  Cloud,
+  BookOpen,
+  User,
+  Clock,
+  Bookmark,
+  ArrowUpRight,
+  Database,
+  Cpu
 } from "lucide-react";
 
 // --- Dữ liệu danh mục và giải pháp mẫu ---
@@ -97,12 +105,26 @@ export default function SolutionsExplorer() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("Tất cả");
-  
-  // State quản lý việc xổ xuống và tiêu chí sắp xếp
   const [isSortOpen, setIsSortOpen] = useState(false);
-  const [sortBy, setSortBy] = useState("newest"); // "newest" | "oldest"
+  const [sortBy, setSortBy] = useState("newest");
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  // 1. Lọc dữ liệu theo danh mục, từ khóa, độ khó
+  // Đồng bộ hóa trạng thái giao diện Next-Themes (Tránh lỗi Hydration Mismatch)
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && theme === "dark";
+
+  const handleCopyClone = (id: number, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   const filteredSolutions = SOLUTIONS_DATA.filter(sol => {
     const matchesCategory = selectedCategory === "all" || sol.category === selectedCategory;
     const matchesDifficulty = selectedDifficulty === "Tất cả" || sol.difficulty === selectedDifficulty;
@@ -112,54 +134,72 @@ export default function SolutionsExplorer() {
     return matchesCategory && matchesDifficulty && matchesSearch;
   });
 
-  // 2. Sắp xếp dữ liệu sau khi lọc (Giả định ID lớn hơn là bài viết mới hơn)
   const sortedSolutions = [...filteredSolutions].sort((a, b) => {
     if (sortBy === "newest") return b.id - a.id;
     return a.id - b.id;
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
+    <div className={`min-h-screen transition-colors duration-300 font-sans antialiased w-full overflow-x-hidden ${
+      isDark ? "bg-black text-slate-100" : "bg-slate-50 text-slate-900"
+    }`}>
       
-      {/* HEADER TÌM KIẾM */}
-      <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 backdrop-blur-md bg-white/80">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                <Layers className="w-5 h-5 text-blue-600" />
-                Kho Giải Pháp Kỹ Thuật
+      {/* ─── PHẦN ĐẦU TRANG CÂN ĐỐI TRỤC DỌC (ĐÃ SỬA LỖI OVERLAP CHÈN NỘI DUNG) ─── */}
+      <div className={`border-b relative z-10 transition-colors duration-300 w-full ${
+        isDark ? "bg-black border-slate-900" : "bg-white border-slate-200/80"
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-7">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+            
+            <div className="min-w-0 space-y-1">
+              <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-tight flex items-center gap-2">
+                <Layers className="w-4 h-4 sm:w-5 h-5 text-blue-600 dark:text-blue-500 flex-shrink-0" />
+                <span>Kho Giải Pháp Kỹ Thuật</span>
               </h1>
-              <p className="text-xs text-slate-500 mt-0.5">Tìm kiếm cấu trúc, mã nguồn và best practices cho dự án của bạn.</p>
+              <p className={`text-[11px] sm:text-xs transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                Tìm kiếm cấu trúc, mã nguồn và best practices cho dự án của bạn.
+              </p>
             </div>
             
-            <div className="relative flex-1 max-w-xl md:ml-8">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            {/* Hộp tìm kiếm cân xứng tương thích đa thiết bị */}
+            <div className="relative w-full md:w-80 lg:w-[400px] min-w-0 flex-shrink-0">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Tìm kiếm giải pháp, từ khóa hoặc công nghệ (e.g. Next.js, Docker)..."
+                placeholder="Tìm kiếm giải pháp, từ khóa hoặc công nghệ..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                className={`w-full pl-10 pr-9 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all ${
+                  isDark 
+                    ? "bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus:bg-slate-900/40" 
+                    : "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                }`}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600">
-                  <X className="w-3 h-3" />
+                <button onClick={() => setSearchQuery("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
+
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* BỐ CỤC CHÍNH */}
-      <main className="container mx-auto px-6 py-8 grid lg:grid-cols-12 gap-8">
+      {/* BỐ CỤC KHÔNG GIAN LÀM VIỆC CHÍNH */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8 grid lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 w-full">
         
-        {/* SIDEBAR BỘ LỌC (CỘT TRÁI) */}
-        <aside className="lg:col-span-3 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-4">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block px-2 mb-3">Phân loại phân hệ</span>
-            <div className="space-y-1">
+        {/* SIDEBAR BỘ LỌC NGÔN NGỮ & PHÂN HỆ */}
+        <aside className="lg:col-span-3 w-full min-w-0 space-y-4 sm:space-y-6">
+          
+          {/* Phân loại phân hệ */}
+          <div className={`rounded-2xl border p-3 sm:p-4 transition-colors duration-300 ${
+            isDark ? "bg-slate-950 border-slate-900" : "bg-white border-slate-200/60"
+          }`}>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block mb-2 px-1 text-slate-400 dark:text-slate-500">
+              Phân hệ công nghệ
+            </span>
+            <div className="flex flex-wrap lg:flex-col gap-1.5">
               {CATEGORIES.map((cat) => {
                 const IconComponent = cat.icon;
                 const isActive = selectedCategory === cat.id;
@@ -167,33 +207,42 @@ export default function SolutionsExplorer() {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    className={`flex items-center gap-2 px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold transition-all w-full ${
                       isActive 
-                        ? "bg-blue-50 text-blue-600 shadow-sm" 
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/10 dark:shadow-none" 
+                        : isDark
+                          ? "bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+                          : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
-                    <IconComponent className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
-                    {cat.name}
+                    <IconComponent className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-white" : "text-blue-500"}`} />
+                    <span className="truncate">{cat.name}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-4">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block px-2 mb-3">Mức độ phức tạp</span>
-            <div className="flex flex-wrap gap-2">
+          {/* Mức độ phức tạp */}
+          <div className={`rounded-2xl border p-3 sm:p-4 transition-colors duration-300 ${
+            isDark ? "bg-slate-950 border-slate-900" : "bg-white border-slate-200/60"
+          }`}>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block mb-2 px-1 text-slate-400 dark:text-slate-500">
+              Mức độ phức tạp
+            </span>
+            <div className="flex flex-wrap gap-1.5 p-0.5">
               {["Tất cả", "Cơ bản", "Trung bình", "Nâng cao", "Chuyên gia"].map((diff) => {
                 const isSelected = selectedDifficulty === diff;
                 return (
                   <button
                     key={diff}
                     onClick={() => setSelectedDifficulty(diff)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    className={`px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-medium border transition-all ${
                       isSelected 
-                        ? "bg-slate-900 text-white" 
-                        : "bg-slate-50 text-slate-600 border border-slate-200/60 hover:bg-slate-100"
+                        ? "bg-blue-600 border-blue-600 text-white shadow-sm" 
+                        : isDark
+                          ? "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                     }`}
                   >
                     {diff}
@@ -203,61 +252,51 @@ export default function SolutionsExplorer() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-600 to-sky-500 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+          {/* Banner hệ thống */}
+          <div className="hidden lg:block bg-gradient-to-br from-blue-600 to-sky-500 rounded-2xl p-5 text-white shadow-sm relative overflow-hidden border border-blue-700">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
             <Sparkles className="w-5 h-5 text-sky-200 mb-3" />
             <h4 className="font-bold text-sm mb-1">Cập nhật liên tục</h4>
             <p className="text-[11px] text-blue-100 leading-relaxed mb-4">Các giải pháp lập trình được đội ngũ kiểm tra cấu trúc nghiêm ngặt trước khi xuất bản.</p>
             <div className="text-xs bg-white/10 py-1.5 px-3 rounded-lg font-mono inline-block">System Uptime: 99.99%</div>
           </div>
+
         </aside>
 
-        {/* HIỂN THỊ KẾT QUẢ (CỘT PHẢI) */}
-        <section className="lg:col-span-9 space-y-6">
+        {/* NƠI HIỂN THỊ DANH SÁCH GIẢI PHÁP */}
+        <section className="lg:col-span-9 space-y-3.5 w-full min-w-0">
           
-          {/* THANH ĐIỀU KHIỂN & DROPDOWN SẮP XẾP */}
-          <div className="flex items-center justify-between text-xs font-medium text-slate-500 bg-white border border-slate-200/60 px-4 py-3 rounded-xl relative">
-            <div>Tìm thấy <span className="font-bold text-slate-800">{sortedSolutions.length}</span> giải pháp phù hợp</div>
+          {/* Thanh số liệu kết quả */}
+          <div className={`flex items-center justify-between text-[11px] sm:text-xs font-medium border px-3.5 py-2.5 rounded-xl relative w-full transition-colors duration-300 ${
+            isDark ? "bg-slate-950 border-slate-900 text-slate-400" : "bg-white border-slate-200/60 text-slate-500"
+          }`}>
+            <div className="truncate">Tìm thấy <span className="font-bold text-slate-800 dark:text-white">{sortedSolutions.length}</span> giải pháp phù hợp</div>
             
-            {/* Vùng Dropdown */}
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <button 
                 onClick={() => setIsSortOpen(!isSortOpen)}
-                className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg text-slate-700 font-semibold transition-all duration-150"
+                className={`flex items-center gap-1 border px-2.5 py-1.5 rounded-lg font-semibold text-[11px] sm:text-xs transition-colors ${
+                  isDark ? "bg-slate-900 border-slate-800 text-slate-200" : "bg-slate-50 border-slate-200 text-slate-700"
+                }`}
               >
-                Sắp xếp: {sortBy === "newest" ? "Mới nhất" : "Cũ nhất"}
-                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isSortOpen ? "rotate-180" : ""}`} />
+                <span>Sắp xếp: {sortBy === "newest" ? "Mới nhất" : "Cũ nhất"}</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
               </button>
 
               <AnimatePresence>
                 {isSortOpen && (
                   <>
-                    {/* Lớp phủ vô hình để bấm trượt ra ngoài tự đóng menu */}
                     <div className="fixed inset-0 z-10" onClick={() => setIsSortOpen(false)} />
-                    
                     <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                      transition={{ duration: 0.15, ease: "easeOut" }}
-                      className="absolute right-0 mt-2 w-36 bg-white border border-slate-200 shadow-xl rounded-xl py-1.5 z-20 origin-top-right"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      className={`absolute right-0 mt-1 w-32 border shadow-xl rounded-xl py-1 z-20 origin-top-right transition-colors ${
+                        isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+                      }`}
                     >
-                      <button
-                        onClick={() => { setSortBy("newest"); setIsSortOpen(false); }}
-                        className={`w-full text-left px-3.5 py-2 text-xs font-medium hover:bg-slate-50 transition-colors ${
-                          sortBy === "newest" ? "text-blue-600 bg-blue-50/40 font-bold" : "text-slate-600"
-                        }`}
-                      >
-                        Mới nhất
-                      </button>
-                      <button
-                        onClick={() => { setSortBy("oldest"); setIsSortOpen(false); }}
-                        className={`w-full text-left px-3.5 py-2 text-xs font-medium hover:bg-slate-50 transition-colors ${
-                          sortBy === "oldest" ? "text-blue-600 bg-blue-50/40 font-bold" : "text-slate-600"
-                        }`}
-                      >
-                        Cũ nhất
-                      </button>
+                      <button onClick={() => { setSortBy("newest"); setIsSortOpen(false); }} className={`w-full text-left px-3 py-1.5 text-[11px] ${isDark ? "text-slate-300 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-50"}`}>Mới nhất</button>
+                      <button onClick={() => { setSortBy("oldest"); setIsSortOpen(false); }} className={`w-full text-left px-3 py-1.5 text-[11px] ${isDark ? "text-slate-300 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-50"}`}>Cũ nhất</button>
                     </motion.div>
                   </>
                 )}
@@ -265,79 +304,97 @@ export default function SolutionsExplorer() {
             </div>
           </div>
 
-          {/* GRID DANH SÁCH GIẢI PHÁP */}
-          <div className="grid md:grid-cols-2 gap-4">
+          {/* LƯỚI GRID HIỂN THỊ DANH SÁCH CARD GIẢI PHÁP */}
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 w-full">
             <AnimatePresence mode="popLayout">
               {sortedSolutions.map((sol) => (
                 <motion.div
                   layout
                   key={sol.id}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.2 }}
-                  className="bg-white border border-slate-200/60 rounded-2xl p-5 hover:shadow-xl hover:shadow-blue-900/[0.02] hover:border-blue-200/60 transition-all duration-300 flex flex-col justify-between group"
+                  transition={{ duration: 0.15 }}
+                  className={`border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all w-full min-w-0 group ${
+                    isDark 
+                      ? "bg-slate-950 border-slate-900 hover:border-slate-800" 
+                      : "bg-white border-slate-200 hover:border-blue-200"
+                  }`}
                 >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-4">
-                      <div className="flex flex-wrap gap-1.5">
+                  <div className="min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-4 w-full min-w-0">
+                      <div className="flex flex-wrap gap-1 w-full sm:w-auto">
                         {sol.tags.map((tag, i) => (
-                          <span key={i} className="text-[10px] font-mono font-bold px-2 py-0.5 bg-slate-50 border border-slate-100 rounded text-slate-600">
+                          <span key={i} className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
+                            isDark ? "text-slate-400 bg-slate-900 border border-slate-800/80" : "text-slate-600 bg-slate-50 border border-slate-100"
+                          }`}>
                             {tag}
                           </span>
                         ))}
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        sol.difficulty === "Cơ bản" ? "bg-green-50 text-green-600" :
-                        sol.difficulty === "Trung bình" ? "bg-blue-50 text-blue-600" :
-                        sol.difficulty === "Nâng cao" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 ${
+                        sol.difficulty === "Cơ bản" ? "bg-green-50 text-green-600 dark:bg-green-950/40 dark:text-green-400 dark:border dark:border-green-900/30" :
+                        sol.difficulty === "Trung bình" ? "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 dark:border dark:border-blue-900/30" :
+                        sol.difficulty === "Nâng cao" ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 dark:border dark:border-amber-900/30" : 
+                        "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400 dark:border dark:border-red-900/30"
                       }`}>
                         {sol.difficulty}
                       </span>
                     </div>
 
-                    <h3 className="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors leading-snug mb-2 line-clamp-2">
+                    <h3 className={`font-bold text-sm transition-colors leading-snug mb-2 line-clamp-2 ${isDark ? "text-white group-hover:text-blue-400" : "text-slate-800 group-hover:text-blue-600"}`}>
                       {sol.title}
                     </h3>
 
-                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-6">
+                    <p className={`text-xs line-clamp-2 leading-relaxed mb-6 text-justify ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                       {sol.summary}
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-[11px] text-slate-400 font-medium">
+                  <div className={`pt-4 border-t flex items-center justify-between gap-4 ${isDark ? "border-slate-900" : "border-slate-100"}`}>
+                    <div className="flex items-center gap-3.5 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex-shrink-0">
                       <span className="flex items-center gap-1"><User className="w-3 h-3" /> {sol.author}</span>
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {sol.time}</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <button className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                    <div className="flex items-center gap-2 justify-end flex-1">
+                      <button className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${
+                        isDark ? "text-slate-400 hover:text-blue-400 hover:bg-slate-900" : "text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                      }`}>
                         <Bookmark className="w-3.5 h-3.5" />
                       </button>
-                      <button className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 bg-slate-50 border border-slate-200 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 rounded-xl transition-all duration-200">
+                      <button className={`inline-flex items-center justify-center gap-1 text-[11px] font-bold py-2 px-3 rounded-xl transition-all duration-200 min-h-[36px] whitespace-nowrap ${
+                        isDark ? "bg-slate-100 text-slate-900 hover:bg-slate-200" : "bg-slate-900 text-white hover:bg-slate-800"
+                      }`}>
                         Xem Code <ArrowUpRight className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
+
                 </motion.div>
               ))}
             </AnimatePresence>
-
-            {sortedSolutions.length === 0 && (
-              <div className="col-span-2 text-center py-16 bg-white border border-dashed border-slate-200 rounded-3xl space-y-3">
-                <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mx-auto">
-                  <Search className="w-5 h-5" />
-                </div>
-                <h4 className="font-bold text-sm text-slate-700">Không tìm thấy giải pháp nào</h4>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">Vui lòng thử lại bằng các từ khóa khác hoặc điều chỉnh các tùy chọn bộ lọc.</p>
-              </div>
-            )}
           </div>
 
+          {/* TRẠNG THÁI TRỐNG (KHO LỌC KHÔNG CÓ KẾT QUẢ) */}
+          {sortedSolutions.length === 0 && (
+            <div className={`text-center py-16 border border-dashed rounded-3xl space-y-3 w-full ${
+              isDark ? "bg-slate-950 border-slate-900" : "bg-white border-slate-200"
+            }`}>
+              <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 mx-auto">
+                <Search className="w-5 h-5" />
+              </div>
+              <h4 className="font-bold text-sm text-slate-700 dark:text-slate-300">Không tìm thấy giải pháp nào</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto px-4">Vui lòng điều chỉnh lại từ khóa hoặc lọc theo tùy chọn chuyên hệ khác.</p>
+            </div>
+          )}
+
+          {/* PHÂN TRANG */}
           {sortedSolutions.length > 0 && (
-            <div className="flex items-center justify-center pt-6">
-              <button className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-xs font-bold text-slate-700 transition-colors shadow-sm">
+            <div className="flex items-center justify-center pt-2">
+              <button className={`px-5 py-2.5 rounded-xl border text-xs font-bold transition-all w-full sm:w-auto shadow-sm ${
+                isDark ? "bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300" : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
+              }`}>
                 Tải Thêm Giải Pháp
               </button>
             </div>
