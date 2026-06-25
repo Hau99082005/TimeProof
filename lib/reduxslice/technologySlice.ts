@@ -1,9 +1,10 @@
 "use client";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { Technology } from "@/model/technology";
+import { Technology, Category } from "@/model/technology";
 
 interface TechnologyState {
   technologies: Technology[];
+  categories: Category[];
   isLoading: boolean;
   isUploading: boolean;
   error: string | null;
@@ -11,6 +12,7 @@ interface TechnologyState {
 
 const initialState: TechnologyState = {
   technologies: [],
+  categories: [],
   isLoading: false,
   isUploading: false,
   error: null,
@@ -25,6 +27,67 @@ export const fetchTechnologies = createAsyncThunk<Technology[], void>(
       throw new Error(result.error || "Failed to fetch technologies");
     }
     return result.data;
+  },
+);
+
+export const fetchCategories = createAsyncThunk<Category[], void>(
+  "technology/fetchCategories",
+  async () => {
+    const res = await fetch("/api/admin/technologiescategories");
+    const result = await res.json();
+    if (!result.success) {
+      throw new Error(result.error || "Failed to fetch categories");
+    }
+    return result.data;
+  },
+);
+
+export const createCategory = createAsyncThunk<Category, Omit<Category, "id">>(
+  "technology/createCategory",
+  async (categoryData) => {
+    const res = await fetch("/api/admin/technologiescategories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(categoryData),
+    });
+    const result = await res.json();
+    if (!result.success) {
+      throw new Error(result.error || "Failed to create category");
+    }
+    return result.data;
+  },
+);
+
+export const updateCategory = createAsyncThunk<
+  Category,
+  { id: number; categoryData: Partial<Omit<Category, "id">> }
+>("technology/updateCategory", async ({ id, categoryData }) => {
+  const res = await fetch(`/api/admin/technologiescategories/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(categoryData),
+  });
+  const result = await res.json();
+  if (!result.success) {
+    throw new Error(result.error || "Failed to update category");
+  }
+  return result.data;
+});
+
+export const deleteCategory = createAsyncThunk<void, number>(
+  "technology/deleteCategory",
+  async (id) => {
+    const res = await fetch(`/api/admin/technologiescategories/${id}`, {
+      method: "DELETE",
+    });
+    const result = await res.json();
+    if (!result.success) {
+      throw new Error(result.error || "Failed to delete category");
+    }
   },
 );
 
@@ -92,6 +155,50 @@ const technologySlice = createSlice({
       .addCase(fetchTechnologies.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || "Failed to fetch technologies";
+      })
+      .addCase(fetchCategories.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.categories = action.payload;
+      })
+      .addCase(fetchCategories.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to fetch categories";
+      })
+      .addCase(createCategory.pending, (state) => {
+        state.isUploading = true;
+        state.error = null;
+      })
+      .addCase(createCategory.fulfilled, (state, action) => {
+        state.isUploading = false;
+        state.categories.unshift(action.payload);
+      })
+      .addCase(createCategory.rejected, (state, action) => {
+        state.isUploading = false;
+        state.error = action.error.message || "Failed to create category";
+      })
+      .addCase(updateCategory.pending, (state) => {
+        state.isUploading = true;
+        state.error = null;
+      })
+      .addCase(updateCategory.fulfilled, (state, action) => {
+        state.isUploading = false;
+        state.categories = state.categories.map((cat) =>
+          cat.id === action.payload.id ? action.payload : cat,
+        );
+      })
+      .addCase(updateCategory.rejected, (state, action) => {
+        state.isUploading = false;
+        state.error = action.error.message || "Failed to update category";
+      })
+      .addCase(deleteCategory.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(deleteCategory.fulfilled, (state, action) => {
+        state.categories = state.categories.filter((cat) => cat.id !== action.meta.arg);
+      })
+      .addCase(deleteCategory.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to delete category";
       })
       .addCase(createTechnology.pending, (state) => {
         state.isUploading = true;

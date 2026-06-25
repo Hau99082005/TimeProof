@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { dbConnect } from "@/lib/dbConnect";
 import {
-  getTechnologyById,
-  updateTechnology,
-  deleteTechnology,
+  getCategoryById,
+  updateCategory,
+  deleteCategory
 } from "@/model/technology";
 
 interface JwtPayload {
@@ -14,6 +14,33 @@ interface JwtPayload {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const category = await getCategoryById(parseInt(id));
+    if (!category) {
+      return NextResponse.json(
+        { success: false, error: "Không tìm thấy danh mục" },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json({ success: true, data: category });
+  } catch (error) {
+    console.error("Error getting category:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Đã xảy ra lỗi khi lấy danh mục",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
+  }
+}
 
 export async function PUT(
   req: NextRequest,
@@ -51,36 +78,23 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const formData = await req.formData();
-    const name = formData.get("name") as string;
-    const imageFile = formData.get("image") as File;
-    const categoryId = formData.get("category_id") as string;
+    const body = await req.json();
+    const { name, description } = body;
 
-    const updates: any = {};
-
-    if (name !== undefined && name !== null) {
-      updates.name = name;
+    const category = await updateCategory(parseInt(id), { name, description });
+    if (!category) {
+      return NextResponse.json(
+        { success: false, error: "Không tìm thấy danh mục" },
+        { status: 404 },
+      );
     }
-
-    if (categoryId !== undefined && categoryId !== null) {
-      updates.category_id = categoryId ? parseInt(categoryId) : null;
-    }
-
-    if (imageFile && imageFile.size > 0) {
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      updates.imageFile = buffer;
-      updates.imageFileName = imageFile.name;
-    }
-
-    const technology = await updateTechnology(parseInt(id), updates);
-    return NextResponse.json({ success: true, data: technology });
+    return NextResponse.json({ success: true, data: category });
   } catch (error) {
-    console.error("Error updating technology:", error);
+    console.error("Error updating category:", error);
     return NextResponse.json(
       {
         success: false,
-        error: "Đã xảy ra lỗi khi cập nhật công nghệ",
+        error: "Đã xảy ra lỗi khi cập nhật danh mục",
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
@@ -95,7 +109,10 @@ export async function DELETE(
   try {
     const token = req.cookies.get("token")?.value;
     if (!token) {
-      return NextResponse.json({ success: false, error: "Chưa đăng nhập!" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Chưa đăng nhập!" },
+        { status: 401 },
+      );
     }
 
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
@@ -107,23 +124,28 @@ export async function DELETE(
     );
     const currentUsers = currentResult.rows;
     if (currentUsers.length === 0) {
-      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 404 },
+      );
     }
     const currentUser = currentUsers[0];
     if (currentUser.role !== "admin") {
-      return NextResponse.json({ success: false, error: "Access denied" }, { status: 403 });
+      return NextResponse.json(
+        { success: false, error: "Access denied" },
+        { status: 403 },
+      );
     }
 
     const { id } = await params;
-    await deleteTechnology(parseInt(id));
-
-    return NextResponse.json({ success: true, message: "Xóa công nghệ thành công!" });
+    await deleteCategory(parseInt(id));
+    return NextResponse.json({ success: true, message: "Xóa danh mục thành công!" });
   } catch (error) {
-    console.error("Error deleting technology:", error);
+    console.error("Error deleting category:", error);
     return NextResponse.json(
       {
         success: false,
-        error: "Đã xảy ra lỗi khi xóa công nghệ",
+        error: "Đã xảy ra lỗi khi xóa danh mục",
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },

@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
   LayoutDashboard,
-  Users,
   Settings,
   Home,
   LogOut,
@@ -39,29 +38,49 @@ import type { AppDispatch, RootState } from "@/lib/store";
 import { Technology } from "@/model/technology";
 import {
   fetchTechnologies,
+  fetchCategories,
   createTechnology,
   updateTechnology,
   deleteTechnology,
 } from "@/lib/reduxslice/technologySlice";
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const AllTechnoly = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { technologies, isLoading, isUploading, error } = useSelector(
+  const { technologies, categories, isLoading, isUploading } = useSelector(
     (state: RootState) => state.technology,
   );
   const [name, setName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [categoryId, setCategoryId] = useState<string>("");
   const [editingTech, setEditingTech] = useState<Technology | null>(null);
   const [editName, setEditName] = useState("");
+  const [editCategoryId, setEditCategoryId] = useState<string>("");
   const [editSelectedFile, setEditSelectedFile] = useState<File | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   const { signOut } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    dispatch(fetchTechnologies());
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
+  // Tính toán phân trang
+  const totalPages = Math.ceil(technologies.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTechnologies = technologies.slice(startIndex, endIndex);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       const formData = new FormData();
       formData.append("name", name);
+      if (categoryId) {
+        formData.append("category_id", categoryId);
+      }
       if (selectedFile) {
         formData.append("image", selectedFile);
       }
@@ -69,6 +88,7 @@ const AllTechnoly = () => {
       await dispatch(createTechnology(formData)).unwrap();
       toast.success("Tạo công nghệ thành công!");
       setName("");
+      setCategoryId("");
       setSelectedFile(null);
     } catch (err) {
       const errorMessage =
@@ -95,10 +115,11 @@ const AllTechnoly = () => {
   const handleEdit = (tech: Technology) => {
     setEditingTech(tech);
     setEditName(tech.name);
+    setEditCategoryId(tech.category_id ? tech.category_id.toString() : "");
     setEditSelectedFile(null);
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!editingTech) return;
@@ -106,6 +127,9 @@ const AllTechnoly = () => {
     try {
       const formData = new FormData();
       formData.append("name", editName);
+      if (editCategoryId) {
+        formData.append("category_id", editCategoryId);
+      }
       if (editSelectedFile) {
         formData.append("image", editSelectedFile);
       }
@@ -116,6 +140,7 @@ const AllTechnoly = () => {
       toast.success("Cập nhật công nghệ thành công!");
       setEditingTech(null);
       setEditName("");
+      setEditCategoryId("");
       setEditSelectedFile(null);
     } catch (err) {
       const errorMessage =
@@ -137,7 +162,7 @@ const AllTechnoly = () => {
             <span>TimeProof</span>
           </div>
         </SidebarHeader>
-        <SidebarContent>
+       <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel
               style={{
@@ -154,7 +179,7 @@ const AllTechnoly = () => {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild isActive>
                     <Link
                       href="/dashboard/admin"
                       className="flex items-center gap-2"
@@ -164,6 +189,7 @@ const AllTechnoly = () => {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <DropdownMenuSeparator />
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link href="/" className="flex items-center gap-2">
@@ -172,6 +198,7 @@ const AllTechnoly = () => {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <DropdownMenuSeparator />
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link href="/settings" className="flex items-center gap-2">
@@ -180,6 +207,7 @@ const AllTechnoly = () => {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <DropdownMenuSeparator />
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link
@@ -191,14 +219,27 @@ const AllTechnoly = () => {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <DropdownMenuSeparator />
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive>
+                  <SidebarMenuButton asChild>
                     <Link
                       href="/dashboard/admin/technologies"
                       className="flex items-center gap-2"
                     >
                       <ImageIcon />
                       <span>Công nghệ</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <DropdownMenuSeparator />
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href="/dashboard/admin/technologiescategories"
+                      className="flex items-center gap-2"
+                    >
+                      <ImageIcon />
+                      <span>Danh mục Công nghệ</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -234,7 +275,10 @@ const AllTechnoly = () => {
                   Danh sách Công nghệ
                 </h2>
                 <p className="text-muted-foreground text-sm md:text-base">
-                  Quản lý các công nghệ
+                  Quản lý các công nghệ{" "}
+                  <span className="font-semibold text-white-900">
+                    ({technologies.length})
+                  </span>
                 </p>
               </div>
               <Button
@@ -258,7 +302,7 @@ const AllTechnoly = () => {
                 <div className="col-span-full flex justify-center py-12">
                   <div className="size-10 border-4 border-current border-t-transparent rounded-full animate-spin" />
                 </div>
-              ) : technologies.length === 0 ? (
+              ) : currentTechnologies.length === 0 ? (
                 <Card className="md:col-span-2 lg:col-span-3 w-full">
                   <CardContent className="flex flex-col items-center justify-center py-12 md:py-16 lg:py-20">
                     <ImageIcon className="size-12 md:size-16 text-muted-foreground mb-4" />
@@ -268,7 +312,7 @@ const AllTechnoly = () => {
                   </CardContent>
                 </Card>
               ) : (
-                technologies.map((tech) => (
+                currentTechnologies.map((tech) => (
                   <Card
                     key={tech.id}
                     className="transition-all duration-200 hover:shadow-md w-full"
@@ -289,23 +333,23 @@ const AllTechnoly = () => {
                         )}
                       </div>
                       <div className="absolute top-2 right-2 flex gap-2">
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="h-8 w-8"
-                        onClick={() => handleEdit(tech)}
-                      >
-                        <Edit className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8"
-                        onClick={() => handleDelete(tech.id)}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="h-8 w-8"
+                          onClick={() => handleEdit(tech)}
+                        >
+                          <Edit className="size-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="h-8 w-8"
+                          onClick={() => handleDelete(tech.id)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
                     </div>
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
@@ -318,6 +362,81 @@ const AllTechnoly = () => {
                 ))
               )}
             </div>
+
+            {/* Phân trang */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between gap-4 mt-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">
+                    Hiển thị {startIndex + 1} -{" "}
+                    {Math.min(endIndex, technologies.length)} của{" "}
+                    {technologies.length}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    <span className="sr-only">Trang trước</span>
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </Button>
+                      ),
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    <span className="sr-only">Trang sau</span>
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <Card className="transition-all duration-200 hover:shadow-md w-full">
               <CardHeader>
@@ -342,6 +461,28 @@ const AllTechnoly = () => {
                       className="text-sm md:text-base"
                       required
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="tech-category"
+                      className="text-sm md:text-base"
+                    >
+                      Danh mục
+                    </Label>
+                    <select
+                      id="tech-category"
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm md:text-base"
+                    >
+                      <option value="">Chọn danh mục</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="space-y-2">
@@ -429,36 +570,58 @@ const AllTechnoly = () => {
           </div>
         </div>
       </SidebarInset>
-      
-      {/* Modal sửa công nghệ */}
+
       {editingTech && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-          <div className="bg-white shadow-lg w-full max-w-md mx-4 relative z-[10000] p-0">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold">Sửa công nghệ</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-md border border-border/50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-border/30">
+              <h3 className="text-xl font-bold">Sửa công nghệ</h3>
               <Button
                 size="icon"
                 variant="ghost"
                 onClick={() => setEditingTech(null)}
+                className="h-9 w-9 rounded-lg hover:bg-muted transition-colors duration-200"
               >
-                <X className="size-4" />
+                <X className="size-5" />
               </Button>
             </div>
-            <form onSubmit={handleUpdate} className="p-4 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name" className="block text-sm font-medium text-gray-700">Tên công nghệ</Label>
+            <form onSubmit={handleUpdate} className="p-6 space-y-5">
+              <div className="space-y-2.5">
+                <Label htmlFor="edit-name" className="text-sm font-semibold">
+                  Tên công nghệ
+                </Label>
                 <Input
                   id="edit-name"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Nhập tên công nghệ"
                   required
-                  className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-800"
+                  className="h-11 rounded-lg border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-image" className="block text-sm font-medium text-gray-700">Hình ảnh</Label>
-                <div className="border-2 border-dashed border-gray-300 p-4 flex flex-col items-center justify-center gap-2">
+              <div className="space-y-2.5">
+                <Label htmlFor="edit-category" className="text-sm font-semibold">
+                  Danh mục
+                </Label>
+                <select
+                  id="edit-category"
+                  value={editCategoryId}
+                  onChange={(e) => setEditCategoryId(e.target.value)}
+                  className="w-full h-11 border border-border/50 rounded-lg px-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 bg-background"
+                >
+                  <option value="">Chọn danh mục</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2.5">
+                <Label htmlFor="edit-image" className="text-sm font-semibold">
+                  Hình ảnh
+                </Label>
+                <div className="border-2 border-dashed border-border/30 rounded-lg p-4 flex flex-col items-center justify-center gap-3">
                   {editSelectedFile ? (
                     <div className="flex flex-col items-center gap-2">
                       <img
@@ -466,7 +629,7 @@ const AllTechnoly = () => {
                         alt="Preview"
                         className="max-h-32 object-contain"
                       />
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         {editSelectedFile.name}
                       </p>
                       <Button
@@ -474,6 +637,7 @@ const AllTechnoly = () => {
                         variant="destructive"
                         size="sm"
                         onClick={() => setEditSelectedFile(null)}
+                        className="rounded-lg transition-all duration-200"
                       >
                         Xóa ảnh
                       </Button>
@@ -487,7 +651,7 @@ const AllTechnoly = () => {
                           className="max-h-32 object-contain"
                         />
                       )}
-                      <ImageIcon className="size-8 text-gray-500" />
+                      <ImageIcon className="size-8 text-muted-foreground/50" />
                       <input
                         type="file"
                         id="edit-image"
@@ -501,12 +665,12 @@ const AllTechnoly = () => {
                         className="hidden"
                       />
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         type="button"
                         onClick={() =>
                           document.getElementById("edit-image")?.click()
                         }
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 rounded-lg transition-all duration-200"
                       >
                         <Upload className="size-4" />
                         Chọn ảnh mới
@@ -515,15 +679,20 @@ const AllTechnoly = () => {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2 justify-end">
+              <div className="flex gap-3 justify-end pt-2">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => setEditingTech(null)}
+                  className="rounded-lg transition-all duration-200"
                 >
                   Hủy
                 </Button>
-                <Button type="submit" disabled={isUploading}>
+                <Button
+                  type="submit"
+                  disabled={isUploading}
+                  className="rounded-lg transition-all duration-200"
+                >
                   {isUploading ? (
                     <>
                       <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
