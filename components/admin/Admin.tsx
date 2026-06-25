@@ -209,6 +209,30 @@ export default function AdminDashboard() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <DropdownMenuSeparator />
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href="/dashboard/admin/technologies"
+                      className="flex items-center gap-2"
+                    >
+                      <ImageIcon />
+                      <span>Công nghệ</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <DropdownMenuSeparator />
+                 <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href="/dashboard/admin/technologiescategories"
+                      className="flex items-center gap-2"
+                    >
+                      <ImageIcon />
+                      <span>Danh mục Công nghệ</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

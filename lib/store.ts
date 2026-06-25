@@ -3,6 +3,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import bannerReducer from "./reduxslice/bannerSlice";
 import userReducer from "./reduxslice/userSlice";
 import activeReducer from "./reduxslice/activeSlice";
+import technologyReducer from "./reduxslice/technologySlice";
 
 export const makeStore = () => {
   return configureStore({
@@ -10,6 +11,7 @@ export const makeStore = () => {
       banner: bannerReducer,
       user: userReducer,
       active: activeReducer,
+      technology: technologyReducer,
     },
   });
 };

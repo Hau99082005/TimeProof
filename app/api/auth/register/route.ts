@@ -28,10 +28,11 @@ export async function POST(req: NextRequest) {
     }
 
     const pool = await dbConnect();
-    const [existingUsers] = (await pool.execute(
-      "SELECT * FROM users WHERE email = ?",
+    const existingResult = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
       [email.trim()]
-    )) as any;
+    );
+    const existingUsers = existingResult.rows;
 
     if (existingUsers.length > 0) {
       return NextResponse.json(
@@ -41,17 +42,12 @@ export async function POST(req: NextRequest) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const [result] = (await pool.execute(
-      "INSERT INTO users (firebase_id, full_name, email, avatar, password_hash, role, wallet_balance, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+    const insertResult = await pool.query(
+      "INSERT INTO users (firebase_id, full_name, email, avatar, password_hash, role, wallet_balance, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING *",
       ["", name.trim(), email.trim(), "", hashedPassword, "customer", 0]
-    )) as any;
+    );
 
-    const [newUsers] = (await pool.execute(
-      "SELECT * FROM users WHERE id = ?",
-      [result.insertId]
-    )) as any;
-
-    const user = newUsers[0];
+    const user = insertResult.rows[0];
     const userWithoutPassword = { ...user, password_hash: undefined };
 
     return NextResponse.json({ success: true, user: userWithoutPassword });

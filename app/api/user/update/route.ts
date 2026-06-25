@@ -39,10 +39,11 @@ export async function POST(request: NextRequest) {
 
     const pool = await dbConnect();
 
-    const [currentUsers] = (await pool.execute(
-      "SELECT * FROM users WHERE id = ?",
+    const currentResult = await pool.query(
+      "SELECT * FROM users WHERE id = $1",
       [decoded.id],
-    )) as any;
+    );
+    const currentUsers = currentResult.rows;
     if (currentUsers.length === 0) {
       return NextResponse.json(
         { success: false, error: "Không tìm thấy người dùng!" },
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
       const fullName = formData.get("full_name") as string;
 
       if (fullName) {
-        updates.push("full_name = ?");
+        updates.push("full_name = $" + (updates.length + 1));
         values.push(fullName);
       }
 
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
         await writeFile(filepath, buffer);
 
         avatarPath = `/images/avatars/${filename}`;
-        updates.push("avatar = ?");
+        updates.push("avatar = $" + (updates.length + 1));
         values.push(avatarPath);
 
         const oldAvatar = currentUsers[0].avatar;
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
       const { full_name } = body;
 
       if (full_name) {
-        updates.push("full_name = ?");
+        updates.push("full_name = $" + (updates.length + 1));
         values.push(full_name);
       }
     }
@@ -110,15 +111,16 @@ export async function POST(request: NextRequest) {
 
     values.push(decoded.id);
 
-    await pool.execute(
-      `UPDATE users SET ${updates.join(", ")}, updated_at = NOW() WHERE id = ?`,
+    await pool.query(
+      `UPDATE users SET ${updates.join(", ")}, updated_at = NOW() WHERE id = $${values.length}`,
       values,
     );
 
-    const [updatedUsers] = (await pool.execute(
-      "SELECT * FROM users WHERE id = ?",
+    const updatedResult = await pool.query(
+      "SELECT * FROM users WHERE id = $1",
       [decoded.id],
-    )) as any;
+    );
+    const updatedUsers = updatedResult.rows;
     const updatedUser = updatedUsers[0];
     const { password_hash, ...userWithoutPassword } = updatedUser;
 

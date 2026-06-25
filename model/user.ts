@@ -18,11 +18,11 @@ export interface User {
 export const createUser = async (
   user: Omit<User, "id" | "created_at" | "updated_at">,
 ): Promise<User> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [result] = await connection.execute(
+    const result = await client.query(
       `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, status) 
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [
         user.firebase_id || "",
         user.full_name,
@@ -33,59 +33,44 @@ export const createUser = async (
         user.status ?? true,
       ],
     );
-    const insertResult = result as any;
-    const [rows] = await connection.execute(
-      `SELECT * FROM users WHERE id = ?`,
-      [insertResult.insertId],
-    );
-    const users = rows as User[];
-    return users[0];
+    return result.rows[0];
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const getUserById = async (id: number): Promise<User | null> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(
-      `SELECT * FROM users WHERE id = ?`,
-      [id],
-    );
-    const users = rows as User[];
+    const result = await client.query(`SELECT * FROM users WHERE id = $1`, [id]);
+    const users = result.rows as User[];
     return users[0] || null;
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const getUserByFirebaseId = async (
   firebaseId: string,
 ): Promise<User | null> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(
-      `SELECT * FROM users WHERE firebase_id = ?`,
-      [firebaseId],
-    );
-    const users = rows as User[];
+    const result = await client.query(`SELECT * FROM users WHERE firebase_id = $1`, [firebaseId]);
+    const users = result.rows as User[];
     return users[0] || null;
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(
-      `SELECT * FROM users WHERE email = ?`,
-      [email],
-    );
-    const users = rows as User[];
+    const result = await client.query(`SELECT * FROM users WHERE email = $1`, [email]);
+    const users = result.rows as User[];
     return users[0] || null;
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
@@ -93,14 +78,11 @@ export const updateUserWalletBalance = async (
   id: number,
   newBalance: number,
 ): Promise<void> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    await connection.execute(
-      `UPDATE users SET wallet_balance = ? WHERE id = ?`,
-      [newBalance, id],
-    );
+    await client.query(`UPDATE users SET wallet_balance = $1 WHERE id = $2`, [newBalance, id]);
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
@@ -108,48 +90,42 @@ export const updateUserRole = async (
   id: number,
   newRole: "admin" | "seller" | "customer",
 ): Promise<void> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    await connection.execute(`UPDATE users SET role = ? WHERE id = ?`, [
-      newRole,
-      id,
-    ]);
+    await client.query(`UPDATE users SET role = $1 WHERE id = $2`, [newRole, id]);
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const deleteUser = async (id: number): Promise<void> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    await connection.execute(`DELETE FROM users WHERE id = ?`, [id]);
+    await client.query(`DELETE FROM users WHERE id = $1`, [id]);
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const getAllUsers = async (): Promise<User[]> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(`SELECT * FROM users`);
-    return rows as User[];
+    const result = await client.query(`SELECT * FROM users`);
+    return result.rows as User[];
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const getUsersByRole = async (
   role: "admin" | "seller" | "customer",
 ): Promise<User[]> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(
-      `SELECT * FROM users WHERE role = ?`,
-      [role],
-    );
-    return rows as User[];
+    const result = await client.query(`SELECT * FROM users WHERE role = $1`, [role]);
+    return result.rows as User[];
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
@@ -157,15 +133,15 @@ export const searchUsers = async (
   id: number,
   query: string,
 ): Promise<User[]> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(
-      `SELECT * FROM users WHERE id != ? AND(full_name LIKE ? OR email LIKE ?)`,
-      [id, `%${query}%`, `%${query}%`],
+    const result = await client.query(
+      `SELECT * FROM users WHERE id != $1 AND (full_name LIKE $2 OR email LIKE $2)`,
+      [id, `%${query}%`],
     );
-    return rows as User[];
+    return result.rows as User[];
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
@@ -173,12 +149,12 @@ export const createUserWithEmail = async (
   user: Omit<User, "id" | "created_at" | "updated_at">,
   password: string,
 ): Promise<User> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const [result] = await connection.execute(
+    const result = await client.query(
       `INSERT INTO users (firebase_id, full_name, email, avatar, role, wallet_balance, password_hash, status) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
       [
         user.firebase_id || "",
         user.full_name,
@@ -190,31 +166,22 @@ export const createUserWithEmail = async (
         user.status ?? true,
       ],
     );
-    const insertResult = result as any;
-    const [rows] = await connection.execute(
-      `SELECT * FROM users WHERE id = ?`,
-      [insertResult.insertId],
-    );
-    const users = rows as User[];
-    return users[0];
+    return result.rows[0];
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const getUserPasswordHash = async (
   id: number,
 ): Promise<string | null> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(
-      `SELECT password_hash FROM users WHERE id = ?`,
-      [id],
-    );
-    const result = rows as Array<{ password_hash: string | null }>;
-    return result.length > 0 ? result[0].password_hash : null;
+    const result = await client.query(`SELECT password_hash FROM users WHERE id = $1`, [id]);
+    const users = result.rows as Array<{ password_hash: string | null }>;
+    return users.length > 0 ? users[0].password_hash : null;
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
@@ -222,39 +189,33 @@ export const updateUserPassword = async (
   id: number,
   newPassword: string,
 ): Promise<void> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await connection.execute(
-      `UPDATE users SET password_hash = ? WHERE id = ?`,
-      [hashedPassword, id],
-    );
+    await client.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [hashedPassword, id]);
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const deleteUserPassword = async (id: number): Promise<void> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    await connection.execute(
-      `UPDATE users SET password_hash = NULL WHERE id = ?`,
-      [id],
-    );
+    await client.query(`UPDATE users SET password_hash = NULL WHERE id = $1`, [id]);
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const toggleUserStatus = async (id: number): Promise<User | null> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    await connection.execute(`UPDATE users SET status = NOT status WHERE id = ?`, [id]);
-    const [rows] = await connection.execute(`SELECT * FROM users WHERE id = ?`, [id]);
-    const users = rows as User[];
+    await client.query(`UPDATE users SET status = NOT status WHERE id = $1`, [id]);
+    const result = await client.query(`SELECT * FROM users WHERE id = $1`, [id]);
+    const users = result.rows as User[];
     return users[0] || null;
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
@@ -262,17 +223,24 @@ export const updateUser = async (
   id: number,
   updates: Partial<Omit<User, "id" | "created_at" | "updated_at">>,
 ): Promise<User | null> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const fields = Object.keys(updates).map(key => `${key} = ?`).join(", ");
-    const values = Object.values(updates);
-    values.push(id);
+    if (Object.keys(updates).length > 0) {
+      const fields = Object.keys(updates)
+        .map((key, index) => `${key} = $${index + 1}`)
+        .join(", ");
+      const values = Object.values(updates);
+      values.push(id);
 
-    await connection.execute(`UPDATE users SET ${fields}, updated_at = NOW() WHERE id = ?`, values);
-    const [rows] = await connection.execute(`SELECT * FROM users WHERE id = ?`, [id]);
-    const users = rows as User[];
+      await client.query(
+        `UPDATE users SET ${fields}, updated_at = NOW() WHERE id = $${values.length}`,
+        values,
+      );
+    }
+    const result = await client.query(`SELECT * FROM users WHERE id = $1`, [id]);
+    const users = result.rows as User[];
     return users[0] || null;
   } finally {
-    connection.release();
+    client.release();
   }
 };

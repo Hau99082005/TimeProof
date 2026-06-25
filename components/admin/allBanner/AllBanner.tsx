@@ -157,6 +157,30 @@ export default function AllBanner() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <DropdownMenuSeparator />
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href="/dashboard/admin/technologies"
+                      className="flex items-center gap-2"
+                    >
+                      <ImageIcon />
+                      <span>Công nghệ</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <DropdownMenuSeparator />
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href="/dashboard/admin/technologiescategories"
+                      className="flex items-center gap-2"
+                    >
+                      <LayoutDashboard />
+                      <span>Danh mục công nghệ</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

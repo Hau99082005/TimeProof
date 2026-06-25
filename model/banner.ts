@@ -25,7 +25,10 @@ export const uploadImageToCloudinary = async (
         if (error) {
           reject(error);
         } else if (result) {
-          resolve({ public_id: result.public_id, secure_url: result.secure_url });
+          resolve({
+            public_id: result.public_id,
+            secure_url: result.secure_url,
+          });
         }
       },
     );
@@ -33,63 +36,73 @@ export const uploadImageToCloudinary = async (
   });
 };
 
-export const deleteImageFromCloudinary = async (publicId: string): Promise<void> => {
+export const deleteImageFromCloudinary = async (
+  publicId: string,
+): Promise<void> => {
   await cloudinary.uploader.destroy(publicId);
 };
 
 export const getAllBanners = async (): Promise<Banner[]> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(`SELECT * FROM banners ORDER BY created_at DESC`);
-    return rows as Banner[];
+    const result = await client.query(`SELECT * FROM banners ORDER BY created_at DESC`);
+    return result.rows as Banner[];
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const getBannerById = async (id: number): Promise<Banner | null> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
-    const [rows] = await connection.execute(`SELECT * FROM banners WHERE id = ?`, [id]);
-    const banners = rows as Banner[];
+    const result = await client.query(`SELECT * FROM banners WHERE id = $1`, [id]);
+    const banners = result.rows as Banner[];
     return banners[0] || null;
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const createBanner = async (
-  bannerData: Omit<Banner, "id" | "created_at" | "updated_at"> & { imageFile?: Buffer; imageFileName?: string },
+  bannerData: Omit<Banner, "id" | "created_at" | "updated_at"> & {
+    imageFile?: Buffer;
+    imageFileName?: string;
+  },
 ): Promise<Banner> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
     let image = bannerData.image;
     let image_url = bannerData.image_url;
 
     if (bannerData.imageFile && bannerData.imageFileName) {
-      const cloudinaryResult = await uploadImageToCloudinary(bannerData.imageFile, bannerData.imageFileName);
+      const cloudinaryResult = await uploadImageToCloudinary(
+        bannerData.imageFile,
+        bannerData.imageFileName,
+      );
       image = cloudinaryResult.public_id;
       image_url = cloudinaryResult.secure_url;
     }
 
-    const [result] = await connection.execute(
-      `INSERT INTO banners (title, image, image_url) VALUES (?, ?, ?)`,
+    const result = await client.query(
+      `INSERT INTO banners (title, image, image_url) VALUES ($1, $2, $3) RETURNING *`,
       [bannerData.title, image, image_url],
     );
-    const insertResult = result as any;
-    const [rows] = await connection.execute(`SELECT * FROM banners WHERE id = ?`, [insertResult.insertId]);
-    const banners = rows as Banner[];
-    return banners[0];
+    return result.rows[0];
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const updateBanner = async (
   id: number,
-  updates: Partial<Omit<Banner, "id" | "created_at" | "updated_at"> & { imageFile?: Buffer; imageFileName?: string }>,
+  updates: Partial<
+    Omit<Banner, "id" | "created_at" | "updated_at"> & {
+      imageFile?: Buffer;
+      imageFileName?: string;
+    }
+  >,
 ): Promise<Banner | null> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
     const existingBanner = await getBannerById(id);
 
@@ -101,39 +114,49 @@ export const updateBanner = async (
         await deleteImageFromCloudinary(existingBanner.image);
       }
 
-      const cloudinaryResult = await uploadImageToCloudinary(updates.imageFile, updates.imageFileName);
+      const cloudinaryResult = await uploadImageToCloudinary(
+        updates.imageFile,
+        updates.imageFileName,
+      );
       image = cloudinaryResult.public_id;
       image_url = cloudinaryResult.secure_url;
     }
 
-    const dbUpdates: Partial<Omit<Banner, "id" | "created_at" | "updated_at">> = {};
+    const dbUpdates: Partial<Omit<Banner, "id" | "created_at" | "updated_at">> =
+      {};
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (image !== undefined) dbUpdates.image = image;
     if (image_url !== undefined) dbUpdates.image_url = image_url;
 
-    const fields = Object.keys(dbUpdates).map(key => `${key} = ?`).join(", ");
-    const values = [...Object.values(dbUpdates), id] as any[];
+    if (Object.keys(dbUpdates).length > 0) {
+      const fields = Object.keys(dbUpdates)
+        .map((key, index) => `${key} = $${index + 1}`)
+        .join(", ");
+      const values: any[] = Object.values(dbUpdates);
+      values.push(id);
 
-    if (fields) {
-      await connection.execute(`UPDATE banners SET ${fields}, updated_at = NOW() WHERE id = ?`, values);
+      await client.query(
+        `UPDATE banners SET ${fields}, updated_at = NOW() WHERE id = $${values.length}`,
+        values,
+      );
     }
-    const [rows] = await connection.execute(`SELECT * FROM banners WHERE id = ?`, [id]);
-    const banners = rows as Banner[];
-    return banners[0] || null;
+
+    const result = await client.query(`SELECT * FROM banners WHERE id = $1`, [id]);
+    return result.rows[0] || null;
   } finally {
-    connection.release();
+    client.release();
   }
 };
 
 export const deleteBanner = async (id: number): Promise<void> => {
-  const connection = await dbConnection.getConnection();
+  const client = await dbConnection.connect();
   try {
     const banner = await getBannerById(id);
     if (banner?.image) {
       await deleteImageFromCloudinary(banner.image);
     }
-    await connection.execute(`DELETE FROM banners WHERE id = ?`, [id]);
+    await client.query(`DELETE FROM banners WHERE id = $1`, [id]);
   } finally {
-    connection.release();
+    client.release();
   }
 };
