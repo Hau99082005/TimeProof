@@ -351,10 +351,15 @@ const AllTechnoly = () => {
                       </div>
                     </div>
                     <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-1">
                         <CardTitle className="text-sm md:text-base">
                           {tech.name}
                         </CardTitle>
+                        {tech.category_id && (
+                          <p className="text-xs text-muted-foreground font-medium">
+                            {categories.find((cat) => cat.id === tech.category_id)?.name || "N/A"}
+                          </p>
+                        )}
                       </div>
                     </CardHeader>
                   </Card>
