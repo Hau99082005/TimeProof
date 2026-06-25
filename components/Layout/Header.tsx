@@ -6,8 +6,6 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   Menu,
   X,
-  Code2,
-  GraduationCap,
   Building2,
   Globe,
   Newspaper,
@@ -22,7 +20,9 @@ import {
   ChevronDown,
   Layers,
   Info,
-  Cpu
+  Cpu,
+  HomeIcon,
+  FolderKanban
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -63,9 +63,9 @@ const Header = () => {
   }, []);
 
   const mainNavItems = [
-    { name: "Source Code", icon: Code2, href: "/source-code" },
-    { name: "Đồ Án CNTT", icon: GraduationCap, href: "/projects" },
-    { name: "Website Mẫu", icon: Globe, href: "/templates" },
+    { name: "Trang chủ", icon: HomeIcon, href: "/source-code" },
+    { name: "Tính năng", icon: FolderKanban, href: "/projects" },
+    { name: "Websites", icon: Globe, href: "/templates" },
   ];
 
   const dropdownNavItems = [
