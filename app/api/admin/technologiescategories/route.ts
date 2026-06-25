@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { dbConnect } from "@/lib/dbConnect";
 import {
-  getAllTechnologies,
   getAllCategories,
-  createTechnology
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory
 } from "@/model/technology";
 
 interface JwtPayload {
@@ -17,14 +19,14 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
 
 export async function GET() {
   try {
-    const technologies = await getAllTechnologies();
-    return NextResponse.json({ success: true, data: technologies });
+    const categories = await getAllCategories();
+    return NextResponse.json({ success: true, data: categories });
   } catch (error) {
-    console.error("Error getting technologies:", error);
+    console.error("Error getting categories:", error);
     return NextResponse.json(
       {
         success: false,
-        error: "Đã xảy ra lỗi khi lấy danh sách công nghệ",
+        error: "Đã xảy ra lỗi khi lấy danh sách danh mục",
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
@@ -64,39 +66,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const formData = await req.formData();
-    const name = formData.get("name") as string;
-    const imageFile = formData.get("image") as File;
-    const categoryId = formData.get("category_id") as string;
+    const body = await req.json();
+    const { name, description } = body;
 
     if (!name) {
       return NextResponse.json(
-        { success: false, error: "Tên công nghệ là bắt buộc!" },
+        { success: false, error: "Tên danh mục là bắt buộc!" },
         { status: 400 },
       );
     }
 
-    let techData: any = {
-      name,
-      images: "",
-      category_id: categoryId ? parseInt(categoryId) : null,
-    };
-
-    if (imageFile && imageFile.size > 0) {
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      techData.imageFile = buffer;
-      techData.imageFileName = imageFile.name;
-    }
-
-    const technology = await createTechnology(techData);
-    return NextResponse.json({ success: true, data: technology }, { status: 201 });
+    const category = await createCategory({ name, description });
+    return NextResponse.json({ success: true, data: category }, { status: 201 });
   } catch (error) {
-    console.error("Error creating technology:", error);
+    console.error("Error creating category:", error);
     return NextResponse.json(
       {
         success: false,
-        error: "Đã xảy ra lỗi khi tạo công nghệ",
+        error: "Đã xảy ra lỗi khi tạo danh mục",
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
