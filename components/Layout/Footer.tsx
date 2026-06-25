@@ -19,7 +19,7 @@ const Footer = () => {
     { name: "Đồ Án CNTT", href: "/projects", icon: GraduationCap },
     { name: "Website Mẫu", href: "/templates", icon: Globe },
     { name: "Giải Pháp", href: "/solutions", icon: Building2 },
-    { name: "Tin Tức", href: "/news", icon: Newspaper },
+    { name: "Bài viết", href: "/news", icon: Newspaper },
   ];
 
   const contactInfo = [
